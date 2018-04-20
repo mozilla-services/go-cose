@@ -85,7 +85,15 @@ func TestSignErrors(t *testing.T) {
 	err = msg.Sign(randReader, []byte(""), []Signer{*signer})
 	assert.Equal(ErrUnavailableHashFunc, err)
 
+	msg.Signatures[0].Headers.Protected[algTag] = ES256Alg.Value
+	signer.alg = ES256Alg
 	signer.privateKey = dsaPrivateKey
+	err = msg.Sign(randReader, []byte(""), []Signer{*signer})
+	assert.Equal(ErrUnknownPrivateKeyType, err)
+
+	signer.alg = GetAlgByNameOrPanic("PS256")
+	err = msg.Sign(randReader, []byte(""), []Signer{*signer})
+	assert.Equal(errors.New("Signer of type PS256 cannot generate a signature of type ES256"), err)
 
 	msg.Signatures[0].Headers.Protected[algTag] = -9000
 	err = msg.Sign(randReader, []byte(""), []Signer{*signer})
