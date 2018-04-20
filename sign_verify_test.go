@@ -78,6 +78,10 @@ func TestSignErrors(t *testing.T) {
 	msg.AddSignature(sig)
 	assert.Equal(len(msg.Signatures), 1)
 	assert.NotNil(msg.Signatures[0].Headers)
+
+	err = msg.Sign(randReader, []byte(""), []Signer{})
+	assert.Equal(errors.New("0 signers for 1 signatures"), err)
+
 	err = msg.Sign(randReader, []byte(""), []Signer{*signer})
 	assert.Equal(errors.New("SignMessage signature 0 already has signature bytes"), err)
 

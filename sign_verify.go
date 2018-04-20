@@ -140,7 +140,7 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, signers []Signer) (e
 	} else if len(m.Signatures) < 1 {
 		return ErrNoSignatures
 	} else if len(m.Signatures) != len(signers) {
-		return ErrMissingSigners
+		return fmt.Errorf("%d signers for %d signatures", len(signers), len(m.Signatures))
 	}
 
 	for i, signature := range m.Signatures {
