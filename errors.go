@@ -17,6 +17,7 @@ var (
 	ErrNoSignatures           = errors.New("No signatures to sign the message. Use AddSignature to add them")
 	ErrNoSignerFound          = errors.New("No signer found")
 	ErrNoVerifierFound        = errors.New("No verifier found")
+	ErrMissingSigners         = errors.New("The number of message signatures does not match the number of signers")
 	ErrUnavailableHashFunc    = errors.New("hash function is not available")
 	ErrUnknownPrivateKeyType  = errors.New("Unrecognized private key type")
 	ErrUnknownPublicKeyType   = errors.New("Unrecognized public key type")
