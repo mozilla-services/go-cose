@@ -5,7 +5,9 @@ package cose
 
 import (
 	"crypto"
+	"fmt"
 )
+
 
 // Algorithm represents an IANA algorithm's parameters (Name,
 // Value/ID, and optional extra data)
@@ -234,4 +236,50 @@ var Algorithms = []Algorithm{
 		Name:  "AES-CCM-64-128-256", // AES-CCM mode 256-bit key, 128-bit tag, 7-byte nonce from [RFC8152]
 		Value: 33,
 	},
+}
+
+// want: Tag(alg), Value -> Alg (etc. for each header format type)
+
+//
+type AlgName string
+
+//
+type AlgID int
+
+var (
+	AlgPS256 = GetAlgByNameOrPanic("PS256")
+	AlgES256 = GetAlgByNameOrPanic("ES256")
+	AlgES384 = GetAlgByNameOrPanic("ES384")
+	AlgES512 = GetAlgByNameOrPanic("ES512")
+	AlgA128GCM = GetAlgByNameOrPanic("A128GCM")
+)
+
+// GetAlgByName returns a Algorithm for an IANA name
+func GetAlgByName(name string) (alg *Algorithm, err error) {
+	for _, alg := range Algorithms {
+		if alg.Name == name {
+			return &alg, nil
+		}
+	}
+	return nil, fmt.Errorf("Algorithm named %s not found", name)
+}
+
+
+// GetAlgByNameOrPanic returns a Algorithm for an IANA name and panics otherwise
+func GetAlgByNameOrPanic(name string) (alg *Algorithm) {
+	alg, err := GetAlgByName(name)
+	if err != nil {
+		panic(fmt.Sprintf("Unable to get algorithm named %s", name))
+	}
+	return alg
+}
+
+// GetAlgByValue returns a Algorithm for an IANA value
+func GetAlgByValue(value int64) (alg *Algorithm, err error) {
+	for _, alg := range Algorithms {
+		if int64(alg.Value) == value {
+			return &alg, nil
+		}
+	}
+	return nil, fmt.Errorf("Algorithm with value %v not found", value)
 }
