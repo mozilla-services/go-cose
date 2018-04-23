@@ -637,22 +637,22 @@ type COSERustSignatureParameters struct {
 
 var P256_PARAMS = COSERustSignatureParameters{
 	certificate: P256_EE[:],
-	algorithm:   GetAlgByNameOrPanic("ES256"),
+	algorithm:   AlgES256,
 	pkcs8:       PKCS8_P256_EE[:],
 }
 var P384_PARAMS = COSERustSignatureParameters{
 	certificate: P384_EE[:],
-	algorithm:   GetAlgByNameOrPanic("ES384"),
+	algorithm:   AlgES384,
 	pkcs8:       PKCS8_P384_EE[:],
 }
 var P521_PARAMS = COSERustSignatureParameters{
 	certificate: P521_EE[:],
-	algorithm:   GetAlgByNameOrPanic("ES512"),
+	algorithm:   AlgES512,
 	pkcs8:       PKCS8_P521_EE[:],
 }
 var RSA_PARAMS = COSERustSignatureParameters{
 	certificate: RSA_EE[:],
-	algorithm:   GetAlgByNameOrPanic("PS256"),
+	algorithm:   AlgPS256,
 	pkcs8:       PKCS8_RSA_EE[:],
 }
 
@@ -676,7 +676,7 @@ var RustTestCases = []RustTestCase{
 	// {
 	// 	Title: "test_nss_sign_verify",
 	// 	SignPayload: []byte("sample"),
-	// 	SignAlg: GetAlgByNameOrPanic("ES256"),
+	// 	SignAlg: AlgES256,
 	// 	// nss::sign(&SignatureAlgorithm::ES256, PKCS8_P256_EE, payload)
 	// 	// nss::verify_signature(
 	// 	// 	&SignatureAlgorithm::ES256,
@@ -689,7 +689,7 @@ var RustTestCases = []RustTestCase{
 	// 	// Verify the signature with a different payload.
 	// 	Title: "test_nss_sign_verify_different_payload",
 	// 	SignPayload: []byte("sample"),
-	// 	SignAlg: GetAlgByNameOrPanic("ES256"),
+	// 	SignAlg: AlgES256,
 	// 	VerifyPayload: []byte("sampli"),
 	//
 	// 	// nss::sign(&SignatureAlgorithm::ES256, PKCS8_P256_EE, payload);
@@ -706,7 +706,7 @@ var RustTestCases = []RustTestCase{
 	// 	// Verify the signature with a wrong cert.
 	// 	Title: "test_nss_sign_verify_wrong_cert",
 	// 	SignPayload: []byte("sample"),
-	// 	SignAlg: GetAlgByNameOrPanic("ES256"),
+	// 	SignAlg: AlgES256,
 
 	// 	// verify_result = nss::verify_signature(
 	// 	// 	&SignatureAlgorithm::ES256,
@@ -778,7 +778,7 @@ var RustTestCases = []RustTestCase{
 	// 	Params: []COSERustSignatureParameters{
 	// 		COSERustSignatureParameters{
 	// 			certificate: P384_EE[:],
-	// 			algorithm: GetAlgByNameOrPanic("ES256"),
+	// 			algorithm: AlgES256,
 	// 			pkcs8: PKCS8_P256_EE[:],
 	// 		},
 	// 	},

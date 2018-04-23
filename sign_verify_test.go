@@ -40,7 +40,7 @@ func TestSignErrors(t *testing.T) {
 		X: FromBase64Int("5078D4D29795CBE76D3AACFE48C9AF0BCDBEE91A"),
 	}
 
-	signer, err := NewSigner(&ecdsaPrivateKey, ES256Alg)
+	signer, err := NewSigner(&ecdsaPrivateKey, AlgES256)
 	assert.Nil(err, fmt.Sprintf("Error creating signer %s", err))
 
 	sig := NewSignature()
@@ -89,13 +89,13 @@ func TestSignErrors(t *testing.T) {
 	err = msg.Sign(randReader, []byte(""), []Signer{*signer})
 	assert.Equal(ErrUnavailableHashFunc, err)
 
-	msg.Signatures[0].Headers.Protected[algTag] = ES256Alg.Value
-	signer.alg = ES256Alg
+	msg.Signatures[0].Headers.Protected[CommonHeaderIDAlg] = AlgES256.Value
+	signer.alg = AlgES256
 	signer.privateKey = dsaPrivateKey
 	err = msg.Sign(randReader, []byte(""), []Signer{*signer})
 	assert.Equal(ErrUnknownPrivateKeyType, err)
 
-	signer.alg = GetAlgByNameOrPanic("PS256")
+	signer.alg = AlgPS256
 	err = msg.Sign(randReader, []byte(""), []Signer{*signer})
 	assert.Equal(errors.New("Signer of type PS256 cannot generate a signature of type ES256"), err)
 
@@ -139,10 +139,10 @@ func TestVerifyErrors(t *testing.T) {
 	sig.Headers.Protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
 	sig.Headers.Protected[kidTag] = 1
 
-	signer, err := NewSigner(&ecdsaPrivateKey, ES256Alg)
+	signer, err := NewSigner(&ecdsaPrivateKey, AlgES256)
 	assert.Nil(err, "Error creating signer")
 
-	verifier := signer.Verifier(GetAlgByNameOrPanic("ES256"))
+	verifier := signer.Verifier(AlgES256)
 	assert.Nil(err, "Error creating verifier")
 
 	opts := VerifyOpts{
@@ -192,7 +192,7 @@ func TestVerifyErrors(t *testing.T) {
 			X:     FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
 			Y:     FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
 		},
-		alg: GetAlgByNameOrPanic("ES256"),
+		alg: AlgES256,
 	}
 	assert.Equal(errors.New("Error verifying signature 0 expected 256 bit key, got 384 bits instead"), msg.Verify(payload, &opts))
 
@@ -202,7 +202,7 @@ func TestVerifyErrors(t *testing.T) {
 			X:     FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
 			Y:     FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
 		},
-		alg: GetAlgByNameOrPanic("ES256"),
+		alg: AlgES256,
 	}
 	assert.Equal(errors.New("invalid signature length: 14"), msg.Verify(payload, &opts))
 }
