@@ -41,7 +41,6 @@ var (
 			fromBase10("109348945610485453577574767652527472924289229538286649661240938988020367005475727988253438647560958573506159449538793540472829815903949343191091817779240101054552748665267574271163617694640513549693841337820602726596756351006149518830932261246698766355347898158548465400674856021497190430791824869615170301029"),
 		},
 	}
-	ES256Alg = GetAlgByNameOrPanic("ES256")
 )
 
 func fromBase10(base10 string) *big.Int {
@@ -58,23 +57,23 @@ func fromBase10(base10 string) *big.Int {
 func TestNewSigner(t *testing.T) {
 	assert := assert.New(t)
 
-	_, err := NewSigner(&ecdsaPrivateKey, ES256Alg)
+	_, err := NewSigner(&ecdsaPrivateKey, AlgES256)
 	assert.Nil(err, "Error creating signer with ecdsaPrivateKey")
 
-	_, err = NewSigner(&rsaPrivateKey, ES256Alg)
+	_, err = NewSigner(&rsaPrivateKey, AlgES256)
 	assert.Nil(err, "Error creating signer with rsaPrivateKey")
 
-	_, err = NewSigner(&dsaPrivateKey, ES256Alg)
+	_, err = NewSigner(&dsaPrivateKey, AlgES256)
 	assert.Equal(ErrUnknownPrivateKeyType, err, "Did not error creating signer with unsupported dsaPrivateKey")
 }
 
 func TestSignerPublic(t *testing.T) {
 	assert := assert.New(t)
 
-	ecdsaSigner, err := NewSigner(&ecdsaPrivateKey, ES256Alg)
+	ecdsaSigner, err := NewSigner(&ecdsaPrivateKey, AlgES256)
 	assert.Nil(err, "Error creating signer with ecdsaPrivateKey")
 
-	rsaSigner, err := NewSigner(&rsaPrivateKey, ES256Alg)
+	rsaSigner, err := NewSigner(&rsaPrivateKey, AlgES256)
 	assert.Nil(err, "Error creating signer with rsaPrivateKey")
 
 	ecdsaSigner.Public()
@@ -88,10 +87,10 @@ func TestSignerPublic(t *testing.T) {
 func TestVerifyInvalidAlgErrors(t *testing.T) {
 	assert := assert.New(t)
 
-	signer, err := NewSigner(&ecdsaPrivateKey, ES256Alg)
+	signer, err := NewSigner(&ecdsaPrivateKey, AlgES256)
 	assert.Nil(err, "Error creating signer")
 
-	verifier := signer.Verifier(GetAlgByNameOrPanic("A128GCM"))
+	verifier := signer.Verifier(AlgA128GCM)
 	assert.Nil(err, "Error creating verifier")
 
 	err = verifier.Verify([]byte(""), []byte(""))
