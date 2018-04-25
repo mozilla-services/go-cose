@@ -1,10 +1,10 @@
 
 package cose
 
-import (
-	"fmt"
-)
+// import (
+// 	"fmt"
+// )
 
-func init() {
-	fmt.Printf("algs: %+v\n", Algorithms)
-}
+// func init() {
+// 	fmt.Printf("algs: %+v\n", Algorithms)
+// }

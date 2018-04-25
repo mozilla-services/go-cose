@@ -3,6 +3,7 @@ package cose
 import (
 	"fmt"
 	"log"
+	"github.com/pkg/errors"
 )
 
 
@@ -127,7 +128,136 @@ func (h *Headers) Decode(o []interface{}) (err error) {
 	return nil
 }
 
-// TODO: check for duplicates
+func printMap(headerMap map[interface {}] interface{}) {
+	for k, v := range headerMap {
+		fmt.Printf("map %T %+v : %T %+v\n", k, k, v, v)
+	}
+}
+
+
+// getFromMap returns by label, int, or uint64 tag (as from Unmarshal)
+func getFromMap(headerMap map[interface {}] interface{}, key interface{}) (val interface{}, err error) {
+	switch k := key.(type) {
+	case CommonHeaderID:
+		v, ok := headerMap[k]
+		fmt.Printf("chid k: %T %+v v: %T %+v ok: %+v\n", k, k, v, v, ok)
+		if ok {
+			val = v
+			return
+		}
+	case string:
+		v, ok := headerMap[k]
+		fmt.Printf("str k: %T %+v v: %T %+v ok: %+v\n", k, k, v, v, ok)
+		if ok {
+			val = v
+			return
+		}
+	// case int:
+	// case int64:
+	// case uint64:
+	default:
+		v, ok := headerMap[k]
+		fmt.Printf("default k: %T %+v v: %T %+v ok: %+v\n", k, k, v, v, ok)
+		if ok {
+			val = v
+			return
+		}
+	}
+	err = errors.Wrapf(ErrKeyNotFound, "key %T %+v in %T %+v", key, key, headerMap, headerMap)
+	return
+}
+
+// Get for a key returns a value (if any) from the headers It checks
+// the protected then the unprotected headers and returns an error if
+// the key is in both duplicate or neither of them
+func (h *Headers) Get(key interface{}) (val interface {}, err error) {
+	protectedVal, protectedErr := getFromMap(h.Protected, key)
+	unprotectedVal, unprotectedErr := getFromMap(h.Unprotected, key)
+	proMissing := errors.Cause(protectedErr) == ErrKeyNotFound
+	unproMissing := errors.Cause(unprotectedErr) == ErrKeyNotFound
+
+	// fmt.Printf("Get Vals prot %T %+v unprot %T %+v\n", protectedVal, protectedVal, unprotectedVal, unprotectedVal)
+	// fmt.Printf("Get Errs prot %T %+v unprot %T %+v\n", protectedErr, protectedErr, unprotectedErr, unprotectedErr)
+
+	if !(protectedErr == nil || proMissing) {
+		err = protectedErr
+		return
+	}
+	if !(unprotectedErr == nil || unproMissing) {
+		err = unprotectedErr
+		return
+	}
+
+	if proMissing && unproMissing {
+	 	err = errors.Wrapf(ErrKeyNotFound, "Key not found in either map: %+v", key)
+	} else if !proMissing && !unproMissing {
+		err = fmt.Errorf("Ambiguous key found in protected and unprotected headers: %T %+v", key, key)
+	} else if proMissing && !unproMissing {
+		val = unprotectedVal
+	} else if !proMissing && unproMissing {
+		val = protectedVal
+	}
+	return
+}
+
+// Algorithm
+func (h *Headers) Algorithm() (id AlgID, err error) {
+	if h == nil {
+		err = ErrAlgNotFound
+		return
+	}
+
+	var (
+		v interface{}
+		types = []interface{}{
+			CommonHeaderIDAlg,
+			int(CommonHeaderIDAlg),
+			uint64(CommonHeaderIDAlg),
+		}
+	)
+
+	h.Protected = CompressHeaders(h.Protected)
+	h.Unprotected = CompressHeaders(h.Unprotected)
+
+	for _, t := range types {
+		v, err = h.Get(t)
+		// fmt.Printf("for t %T got V %T %+v err %+v\n", t, v, v, err)
+		if err == nil {
+			break
+		}
+	}
+	switch aid := v.(type) {
+	// CommonHeaderID:
+	// 	id, ok = v.(AlgID)
+	// 	if !ok {
+	// 		err = ErrAlgNotFound
+	// 	}
+	case string:
+		id, err = GetAlgIDByName(aid)
+		if err != nil {
+			err = ErrAlgNotFound
+		}
+	case uint64:
+		id, err = getAlgIDByInt(int(aid))
+		if err != nil {
+			err = ErrAlgNotFound
+		}
+	case int64:
+		id, err = getAlgIDByInt(int(aid))
+		if err != nil {
+			err = ErrAlgNotFound
+		}
+	case int:
+		id, err = getAlgIDByInt(aid)
+		if err != nil {
+			err = ErrAlgNotFound
+		}
+	default:
+		err = ErrAlgNotFound
+	}
+	fmt.Printf("landed on alg %T %+v\n", v, v)
+	return
+}
 
 // CompressHeaders replaces string tags with their int values and alg
 // tags with their IANA int values. Is the inverse of DecompressHeaders.
@@ -141,11 +271,11 @@ func CompressHeaders(headers map[interface{}]interface{}) (compressed map[interf
 			tag, err := GetCommonHeaderIDByName(kstr)
 			if err == nil {
 				k = tag
-
 				if kstr == "alg" && vok {
-					alg, err := GetAlgByName(vstr)
+					algID, err := GetAlgIDByName(vstr)
+					// fmt.Printf("!! kstr %+v vstr %+v alg %+v\n", kstr, vstr, algID)
 					if err == nil {
-						v = alg.Value
+						v = algID
 					}
 				}
 			}
@@ -153,6 +283,7 @@ func CompressHeaders(headers map[interface{}]interface{}) (compressed map[interf
 		compressed[k] = v
 	}
 
+	// fmt.Printf("!???! compressing:\n%+v\nto:\n%+v\n", headers, compressed)
 	return compressed
 }
 
@@ -169,9 +300,9 @@ func DecompressHeaders(headers map[interface{}]interface{}) (decompressed map[in
 			if err == nil {
 				k = label
 				if vok && label == CommonHeaderNameAlg {
-					alg, err := GetAlgByValue(int64(vint))
+					algName, err := GetAlgNameByID(int64(vint))
 					if err == nil {
-						v = alg.Name
+						v = algName
 					}
 				}
 			}
@@ -180,48 +311,4 @@ func DecompressHeaders(headers map[interface{}]interface{}) (decompressed map[in
 	}
 
 	return decompressed
-}
-
-func getAlgFromMap(headerMap map[interface {}] interface{}) (alg *Algorithm, err error) {
-	fmt.Printf("!???! hmap %T %+v\n", headerMap, headerMap)
-
-	if tmp, ok := headerMap[CommonHeaderNameAlg]; ok {
-		if algName, ok := tmp.(CommonHeaderName); ok {
-			fmt.Printf("!!!! %+v", algName)
-		}
-	} else if tmp, ok := headerMap[CommonHeaderIDAlg]; ok {
-		if algValue, ok := tmp.(CommonHeaderID); ok {
-			fmt.Printf("??!! %+v", algValue)
-		}
-	} else if tmp, ok := headerMap["alg"]; ok {
-		if algName, ok := tmp.(string); ok {
-			alg, err = GetAlgByName(algName)
-			if err != nil {
-				return nil, err
-			}
-			return alg, nil
-		}
-	} else if tmp, ok := headerMap[uint64(1)]; ok {
-		if algValue, ok := tmp.(int64); ok {
-			alg, err = GetAlgByValue(algValue)
-			if err != nil {
-				return nil, err
-			}
-			return alg, nil
-		}
-	} else if tmp, ok := headerMap[int(1)]; ok {
-		if algValue, ok := tmp.(int); ok {
-			alg, err = GetAlgByValue(int64(algValue))
-			if err != nil {
-				return nil, err
-			}
-			return alg, nil
-		}
-	}
-	return nil, ErrAlgNotFound
-}
-
-// getAlg returns the alg by label, int, or uint64 tag (as from Unmarshal)
-func getAlg(h *Headers) (alg *Algorithm, err error) {
-	return getAlgFromMap(h.Protected)
 }

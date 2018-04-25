@@ -1,11 +1,10 @@
 package cose
 
 import (
-	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"math/rand"
+	"crypto/rand"
 	"strings"
 	"testing"
 )
@@ -18,7 +17,13 @@ func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	assert.Equal(len(example.Input.Sign.Signers), 1)
 
 	signerInput := example.Input.Sign.Signers[0]
-	alg := GetAlgByNameOrPanic(signerInput.Protected.Alg)
+
+	signer, err := NewSignerFromKey(signerInput.Protected.Alg, &privateKey)
+	verifier := signer.Verifier()
+	assert.Nil(err, fmt.Sprintf("%s: Error creating signer %s", example.Title, err))
+
+
+	assert.Nil(err, fmt.Sprintf("%s: Error getting Alg is for alg %s", example.Title, signerInput.Protected.Alg))
 	external := HexToBytesOrDie(signerInput.External)
 
 	decoded, err := Unmarshal(HexToBytesOrDie(example.Output.Cbor))
@@ -31,18 +36,9 @@ func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	message, ok := decoded.(SignMessage)
 	assert.True(ok, fmt.Sprintf("%s: Error casting example CBOR to SignMessage", example.Title))
 
-	signer, err := NewSigner(&privateKey, alg)
-	assert.Nil(err, fmt.Sprintf("%s: Error creating signer %s", example.Title, err))
-
-	verifier := signer.Verifier(alg)
-
 	// Test Verify - signatures CBOR decoded from example
 	assert.NotNil(message.Signatures[0].SignatureBytes)
-	err = message.Verify(external, &VerifyOpts{
-		GetVerifier: func(index int, signature Signature) (Verifier, error) {
-			return *verifier, nil
-		},
-	})
+	err = message.Verify(external, []MessageVerifier{verifier})
 	if example.Fail {
 		assert.NotNil(err, fmt.Sprintf("%s: verifying signature did not fail. Got nil instead of error from signature verification failure", example.Title))
 
@@ -53,12 +49,10 @@ func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	assert.Nil(err, fmt.Sprintf("%s: error verifying signature %+v", example.Title, err))
 
 	// Test Sign
-	randReader := rand.New(rand.NewSource(int64(binary.BigEndian.Uint64([]byte(example.Input.RngDescription)))))
-
 	// clear the signature
 	message.Signatures[0].SignatureBytes = nil
 
-	err = message.Sign(randReader, external, []Signer{*signer})
+	err = message.Sign(rand.Reader, external, []MessageSigner{signer})
 	assert.Nil(err, fmt.Sprintf("%s: signing failed with err %s", example.Title, err))
 
 	// check intermediate
@@ -73,7 +67,10 @@ func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	// assert.Equal(example.Output.Cbor, signed, "CBOR encoded message wrong")
 
 	// Verify our signature (round trip)
-	digest, err := hashSigStructure(ToBeSigned, alg.HashFunc)
+	hash, err := getSigningAlgHashFuncByID(signer.Algorithm())
+	assert.Nil(err, fmt.Sprintf("%s: round trip failed to get hash function for alg %+v err: %+v", example.Title, signer.Algorithm(), err))
+
+	digest, err := hashSigStructure(ToBeSigned, hash)
 	assert.Nil(err, fmt.Sprintf("%s: round trip failed to hash signature %s", example.Title, err))
 
 	err = verifier.Verify(digest, message.Signatures[0].SignatureBytes)
