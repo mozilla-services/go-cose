@@ -1,9 +1,9 @@
 
 package cose
 
-import (
-	"fmt"
-)
+// import (
+// 	"fmt"
+// )
 
 
 // Entry is a COSE Header name and tag e.g. {Tag="alg", Name=1}
@@ -52,6 +52,6 @@ var (
 	}
 )
 
-func init() {
-	fmt.Printf("common headers: %+v\n", entries)
-}
+// func init() {
+// 	fmt.Printf("common headers: %+v\n", entries)
+// }

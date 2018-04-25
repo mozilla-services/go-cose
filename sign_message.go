@@ -1,56 +1,54 @@
 package cose
 
 import (
-	"crypto/ecdsa"
+	"crypto"
 	"fmt"
 	"io"
 )
 
-// Signature represents a COSE signature with CDDL fragment:
-//
-// COSE_Signature =  [
-//        Headers,
-//        signature : bstr
-// ]
-//
-// https://tools.ietf.org/html/rfc8152#section-4.1
-type Signature struct {
-	Headers        *Headers
-	SignatureBytes []byte
+
+// AlgorithmImplementer returns signers and verifiers for a COSE Algorithm
+type AlgorithmImplementer interface {
+	SupportsAlgorithm(algName string) (bool)
+	NewByteSigner(algName string) (signer *ByteSigner, err error)
+	NewByteSignerFromKey(algName string, privateKey *crypto.PrivateKey) (signer *ByteSigner, err error)
+
+	NewVerifier(algName string) (verifier *ByteVerifier, err error)
 }
 
-// NewSignature returns a new COSE Signature with empty headers and
-// nil signature bytes
-func NewSignature() (s *Signature) {
-	return &Signature{
-		Headers: &Headers{
-			Protected:   map[interface{}]interface{}{},
-			Unprotected: map[interface{}]interface{}{},
-		},
-		SignatureBytes: nil,
-	}
+// AlgorithmMethodImplementer lets us know which COSE.Algorithm it implements
+type AlgorithmMethodImplementer interface {
+	Algorithm() AlgID
 }
 
-// Decode updates the signature inplace from its COSE serialization
-func (s *Signature) Decode(o interface{}) {
-	array, ok := o.([]interface{})
-	if !ok {
-		panic(fmt.Sprintf("error decoding sigArray; got %T", array))
-	}
-	if len(array) != 3 {
-		panic(fmt.Sprintf("can only decode Signature with 3 items; got %d", len(array)))
-	}
+// MessageSigner can Sign SignMessages
+type MessageSigner interface {
+	AlgorithmMethodImplementer
+	ByteSigner
+}
 
-	err := s.Headers.Decode(array[0:2])
+// MessageSigner can Verify SignMessages
+type MessageVerifier interface {
+	AlgorithmMethodImplementer
+	ByteVerifier
+}
+
+var algImplementors = []AlgorithmImplementer{
+	ECDSAImpl{
+		supportedECDSAAlgs: supportedECDSAAlgs,
+	},
+}
+
+func NewSignerFromKey(algName string, privateKey *crypto.PrivateKey) (signer *MessageSigner, err error) {
+	var (
+		algID AlgID
+	)
+	algID, err = GetAlgIDByName(algName)
 	if err != nil {
-		panic(fmt.Sprintf("error decoding signature header: %+v", err))
+		return nil, err
 	}
 
-	signatureBytes, ok := array[2].([]byte)
-	if !ok {
-		panic(fmt.Sprintf("unable to decode COSE signature expecting decode from interface{}; got %T", array[2]))
-	}
-	s.SignatureBytes = signatureBytes
+	return
 }
 
 // SignMessage represents a COSESignMessage with CDDL fragment:
@@ -116,12 +114,17 @@ func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (di
 		return nil, err
 	}
 
-	alg, err := getAlg(signature.Headers)
+	algID, err := signature.Headers.Algorithm()
 	if err != nil {
 		return nil, err
 	}
 
-	digest, err = hashSigStructure(ToBeSigned, alg.HashFunc)
+	hash, err := getSigningAlgHashFuncByID(algID)
+	if err != nil {
+		return nil, err
+	}
+
+	digest, err = hashSigStructure(ToBeSigned, hash)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +137,7 @@ func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (di
 
 // Sign signs a SignMessage i.e. it populates
 // signatures[].SignatureBytes using the provided array of Signers
-func (m *SignMessage) Sign(rand io.Reader, external []byte, signers []Signer) (err error) {
+func (m *SignMessage) Sign(rand io.Reader, external []byte, signers []MessageSigner) (err error) {
 	if m.Signatures == nil {
 		return ErrNilSignatures
 	} else if len(m.Signatures) < 1 {
@@ -154,11 +157,11 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, signers []Signer) (e
 		// TODO: check if provided privateKey verify alg, bitsize, and supported key_ops in protected
 
 		// TODO: dedup with alg in m.SignatureDigest()?
-		alg, err := getAlg(signature.Headers)
+		algID, err := signature.Headers.Algorithm()
 		if err != nil {
 			return err
 		}
-		if alg.Value > -1 { // Negative numbers are used for second layer objects (COSE_Signature and COSE_recipient)
+		if algID > -1 { // Negative numbers are used for second layer objects (COSE_Signature and COSE_recipient)
 			return ErrInvalidAlg
 		}
 
@@ -168,8 +171,8 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, signers []Signer) (e
 		}
 
 		signer := signers[i]
-		if alg.Value != signer.alg.Value {
-			return fmt.Errorf("Signer of type %s cannot generate a signature of type %s", signer.alg.Name, alg.Name)
+		if algID != signer.Algorithm() {
+			return fmt.Errorf("Signer of type %+v cannot generate a signature of type %+v", signer.Algorithm(), algID)
 		}
 
 		// 3.  Call the signature creation algorithm passing in K (the key to
@@ -188,7 +191,7 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, signers []Signer) (e
 
 // Verify verifies all signatures on the SignMessage returning nil for
 // success or an error
-func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
+func (m *SignMessage) Verify(external []byte, verifiers []MessageVerifier) (err error) {
 	if m.Signatures == nil || len(m.Signatures) < 1 {
 		return nil // Nothing to check
 	}
@@ -205,11 +208,11 @@ func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 		// TODO: check if provided privateKey verify alg, bitsize, and supported key_ops in protected
 
 		// TODO: dedup with alg in m.SignatureDigest()?
-		alg, err := getAlg(signature.Headers)
+		algID, err := signature.Headers.Algorithm()
 		if err != nil {
 			return err
 		}
-		if alg.Value > -1 { // Negative numbers are used for second layer objects (COSE_Signature and COSE_recipient)
+		if algID > -1 { // Negative numbers are used for second layer objects (COSE_Signature and COSE_recipient)
 			return ErrInvalidAlg
 		}
 
@@ -218,16 +221,16 @@ func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 			return err
 		}
 
-		verifier, err := opts.GetVerifier(i, signature)
-		if err != nil {
-			return fmt.Errorf("Error finding a Verifier for signature %d", i)
-		}
-		if ecdsaKey, ok := verifier.publicKey.(ecdsa.PublicKey); ok {
-			curveBits := ecdsaKey.Curve.Params().BitSize
-			if alg.expectedKeyBitSize != curveBits {
-				return fmt.Errorf("Error verifying signature %d expected %d bit key, got %d bits instead", i, alg.expectedKeyBitSize, curveBits)
-			}
-		}
+		verifier := verifiers[i]
+		// if err != nil {
+		// 	return fmt.Errorf("Error finding a Verifier for signature %d", i)
+		// }
+		// if ecdsaKey, ok := verifier.publicKey.(ecdsa.PublicKey); ok {
+		// 	curveBits := ecdsaKey.Curve.Params().BitSize
+		// 	if alg.expectedKeyBitSize != curveBits {
+		// 		return fmt.Errorf("Error verifying signature %d expected %d bit key, got %d bits instead", i, alg.expectedKeyBitSize, curveBits)
+		// 	}
+		// }
 
 		// 3.  Call the signature creation algorithm passing in K (the key to
 		//     sign with), alg (the algorithm to sign with), and ToBeSigned (the

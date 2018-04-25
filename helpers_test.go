@@ -631,34 +631,34 @@ var XPI_PAYLOAD = [...]byte{
 
 type COSERustSignatureParameters struct {
 	certificate []byte
-	algorithm   *Algorithm
+	algorithm   string
 	pkcs8       []byte
 }
 
 var P256_PARAMS = COSERustSignatureParameters{
 	certificate: P256_EE[:],
-	algorithm:   AlgES256,
+	algorithm:   "ES256",
 	pkcs8:       PKCS8_P256_EE[:],
 }
 var P384_PARAMS = COSERustSignatureParameters{
 	certificate: P384_EE[:],
-	algorithm:   AlgES384,
+	algorithm:   "ES384",
 	pkcs8:       PKCS8_P384_EE[:],
 }
 var P521_PARAMS = COSERustSignatureParameters{
 	certificate: P521_EE[:],
-	algorithm:   AlgES512,
+	algorithm:   "ES512",
 	pkcs8:       PKCS8_P521_EE[:],
 }
 var RSA_PARAMS = COSERustSignatureParameters{
 	certificate: RSA_EE[:],
-	algorithm:   AlgPS256,
+	algorithm:   "PS256",
 	pkcs8:       PKCS8_RSA_EE[:],
 }
 
 type RustTestCase struct {
 	Title         string         // test fn name in cose-rust/examples/sign_verify/main.rs
-	SignAlg       *Algorithm // COSE signing algorithm to use
+	SignAlg       string        // COSE signing algorithm to use
 	SignPayload   []byte         // payload to sign
 	VerifyPayload []byte         // payload to verify (defaults to SignPayload)
 	Certs         [][]byte
@@ -676,7 +676,7 @@ var RustTestCases = []RustTestCase{
 	// {
 	// 	Title: "test_nss_sign_verify",
 	// 	SignPayload: []byte("sample"),
-	// 	SignAlg: AlgES256,
+	// 	SignAlg: "ES256",
 	// 	// nss::sign(&SignatureAlgorithm::ES256, PKCS8_P256_EE, payload)
 	// 	// nss::verify_signature(
 	// 	// 	&SignatureAlgorithm::ES256,
@@ -689,7 +689,7 @@ var RustTestCases = []RustTestCase{
 	// 	// Verify the signature with a different payload.
 	// 	Title: "test_nss_sign_verify_different_payload",
 	// 	SignPayload: []byte("sample"),
-	// 	SignAlg: AlgES256,
+	// 	SignAlg: "ES256",
 	// 	VerifyPayload: []byte("sampli"),
 	//
 	// 	// nss::sign(&SignatureAlgorithm::ES256, PKCS8_P256_EE, payload);
@@ -706,7 +706,7 @@ var RustTestCases = []RustTestCase{
 	// 	// Verify the signature with a wrong cert.
 	// 	Title: "test_nss_sign_verify_wrong_cert",
 	// 	SignPayload: []byte("sample"),
-	// 	SignAlg: AlgES256,
+	// 	SignAlg: "ES256",
 
 	// 	// verify_result = nss::verify_signature(
 	// 	// 	&SignatureAlgorithm::ES256,
@@ -778,7 +778,7 @@ var RustTestCases = []RustTestCase{
 	// 	Params: []COSERustSignatureParameters{
 	// 		COSERustSignatureParameters{
 	// 			certificate: P384_EE[:],
-	// 			algorithm: AlgES256,
+	// 			algorithm: "ES256",
 	// 			pkcs8: PKCS8_P256_EE[:],
 	// 		},
 	// 	},
@@ -827,8 +827,8 @@ var RustTestCases = []RustTestCase{
 	},
 }
 
-var algTag = GetCommonHeaderTagOrPanic("alg")
-var kidTag = GetCommonHeaderTagOrPanic("kid")
+var algTag = CommonHeaderIDAlg
+var kidTag = CommonHeaderIDKeyID
 var randReader = rand.New(rand.NewSource(0))
 
 // WGExample
