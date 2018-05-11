@@ -20,7 +20,8 @@ func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	alg := getAlgByNameOrPanic(signerInput.Protected.Alg)
 	external := HexToBytesOrDie(signerInput.External)
 
-	decoded, err := Unmarshal(HexToBytesOrDie(example.Output.Cbor))
+	var decoded interface{}
+	err := Unmarshal(HexToBytesOrDie(example.Output.Cbor), decoded)
 	assert.Nil(err, fmt.Sprintf("%s: Error decoding example CBOR", example.Title))
 
 	if ExpectCastToFail(example.Title) {

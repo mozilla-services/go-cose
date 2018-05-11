@@ -23,21 +23,20 @@ func GetCOSEHandle() (h *codec.CborHandle) {
 	return h
 }
 
-// Marshal returns the CBOR []byte encoding of param o
-func Marshal(o interface{}) (b []byte, err error) {
-	var enc *codec.Encoder = codec.NewEncoderBytes(&b, GetCOSEHandle())
+// Marshal CBOR encodes param v as bytes or returns an error
+func Marshal(v interface{}) (data []byte, err error) {
+	var enc *codec.Encoder = codec.NewEncoderBytes(&data, GetCOSEHandle())
 
-	err = enc.Encode(o)
-	return b, err
+	err = enc.Encode(v)
+	return
 }
 
-// Unmarshal returns the CBOR decoding of a []byte into param o
-// TODO: decode into object inplace to implement the more encoding interface func Unmarshal(data []byte, v interface{}) error
-func Unmarshal(b []byte) (o interface{}, err error) {
-	var dec *codec.Decoder = codec.NewDecoderBytes(b, GetCOSEHandle())
+// Unmarshal CBOR decodes byte data into param v or errors
+func Unmarshal(data []byte, v interface{}) (err error) {
+	var dec *codec.Decoder = codec.NewDecoderBytes(data, GetCOSEHandle())
 
-	err = dec.Decode(&o)
-	return o, err
+	err = dec.Decode(&v)
+	return
 }
 
 // Ext is a codec.cbor extension to handle custom (de)serialization of

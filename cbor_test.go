@@ -109,14 +109,17 @@ func MarshalsToExpectedBytes(t *testing.T, testCase CBORTestCase) {
 func UnmarshalsWithoutErr(t *testing.T, testCase CBORTestCase) {
 	assert := assert.New(t)
 
-	_, err := Unmarshal(testCase.bytes)
+	var result interface{}
+	err := Unmarshal(testCase.bytes, result)
 	assert.Nil(err)
 }
 
 func RoundtripsToExpectedBytes(t *testing.T, testCase CBORTestCase) {
 	assert := assert.New(t)
 
-	obj, err := Unmarshal(testCase.bytes)
+	var obj interface{}
+
+	err := Unmarshal(testCase.bytes, obj)
 	assert.Nil(err)
 
 	bytes, err := Marshal(obj)
@@ -231,7 +234,8 @@ func TestCBORDecodeNilSignMessagePayload(t *testing.T) {
 	// tag(98) + array(4) [ bytes(0), map(0), nil/null, array(0) ]
 	b := HexToBytesOrDie("D862" + "84" + "40" + "A0" + "F6" + "80" )
 
-	result, err := Unmarshal(b)
+	var result interface{}
+	err := Unmarshal(b, result)
 	assert.Nil(err)
 	assert.Equal(result, msg)
 
@@ -360,7 +364,8 @@ func TestCBORDecodingDuplicateKeys(t *testing.T) {
 	}
 
 	for _, testCase := range cases {
-		result, err := Unmarshal(testCase.bytes)
+		var result interface{}
+		err := Unmarshal(testCase.bytes, result)
 		assert.Nil(err)
 		assert.Equal(testCase.result, result)
 	}
@@ -432,7 +437,8 @@ func TestCBORDecodingErrors(t *testing.T) {
 	}
 
 	for _, testCase := range cases {
-		result, err := Unmarshal(testCase.bytes)
+		var result interface{}
+		err := Unmarshal(testCase.bytes, result)
 		assert.Nil(result)
 		assert.Equal(errors.New(testCase.errorMessage), err)
 	}

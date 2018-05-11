@@ -3,6 +3,7 @@ package cose
 import (
 	"fmt"
 	"log"
+	"github.com/pkg/errors"
 )
 
 // Headers represents "two buckets of information that are not
@@ -64,16 +65,11 @@ func (h *Headers) DecodeProtected(o interface{}) (err error) {
 		return nil
 	}
 
-	protected, err := Unmarshal(b)
+	err = Unmarshal(b, h.Protected)
 	if err != nil {
-		return fmt.Errorf("error CBOR decoding protected header bytes; got %T", protected)
+		return errors.Wrapf(err, "error CBOR decoding protected header bytes")
 	}
-	protectedMap, ok := protected.(map[interface{}]interface{})
-	if !ok {
-		return fmt.Errorf("error casting protected to map; got %T", protected)
-	}
-	h.Protected = protectedMap
-	return nil
+	return
 }
 
 // DecodeUnprotected Unmarshals and sets Headers.unprotected from an interface{}
