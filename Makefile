@@ -46,4 +46,4 @@ smoketest-examples:
 	go run example/verify.go
 
 ci: install-godep install-golint goveralls install coverage lint vet
-	goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
+	goveralls -coverprofile=coverage.out -service=travis-ci
