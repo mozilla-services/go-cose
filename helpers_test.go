@@ -2,6 +2,7 @@ package cose
 
 import (
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/elliptic"
 	"encoding/hex"
 	"encoding/json"
@@ -847,8 +848,11 @@ type WGExample struct {
 					Kid string `json:"kid"`
 					Crv string `json:"crv"`
 					X   string `json:"x"`
+					XHex   string `json:"x_hex"`
 					Y   string `json:"y"`
+					YHex   string `json:"y_hex"`
 					D   string `json:"d"`
+					DHex   string `json:"d_hex"`
 				} `json:"key"`
 				Unprotected struct {
 					Kid string `json:"kid"`
@@ -883,32 +887,47 @@ func HexToBytesOrDie(s string) []byte {
 	return b
 }
 
-func LoadPrivateKey(example *WGExample) (key ecdsa.PrivateKey) {
+func LoadPrivateKey(example *WGExample) (key interface{}) {
 	if len(example.Input.Sign.Signers) != 1 {
 		panic(fmt.Sprintf("Not one signer in example: %s", example.Title))
 	}
 	signerInput := example.Input.Sign.Signers[0]
 
 	var curve elliptic.Curve
-	switch signerInput.Key.Crv {
-	case "P-256":
-		curve = elliptic.P256()
-	case "P-384":
-		curve = elliptic.P384()
-	case "P-521":
-		curve = elliptic.P521()
+	switch signerInput.Key.Kty {
+	case "EC":
+		switch signerInput.Key.Crv {
+		case "P-256":
+			curve = elliptic.P256()
+		case "P-384":
+			curve = elliptic.P384()
+		case "P-521":
+			curve = elliptic.P521()
+		default:
+			log.Fatalf("Can't load Private key with curve type: %s", signerInput.Key.Crv)
+		}
+
+		return ecdsa.PrivateKey{
+			PublicKey: ecdsa.PublicKey{
+				Curve: curve,
+				X:     FromBase64Int(signerInput.Key.X),
+				Y:     FromBase64Int(signerInput.Key.Y),
+			},
+			D: FromBase64Int(signerInput.Key.D),
+		}
+	case "OKP":
+		switch signerInput.Key.Crv {
+		case "Ed25519":
+            val, _ := hex.DecodeString(signerInput.Key.DHex)
+            return ed25519.PrivateKey(val)
+        default:
+                log.Fatalf("Can't load Private key with curve type: %s", signerInput.Key.Crv)
+		}
 	default:
-		log.Fatalf("Can't load Private key with curve type: %s", signerInput.Key.Crv)
+		log.Fatalf("Can't load Private key with type: %s", signerInput.Key.Kty)
 	}
 
-	return ecdsa.PrivateKey{
-		PublicKey: ecdsa.PublicKey{
-			Curve: curve,
-			X:     FromBase64Int(signerInput.Key.X),
-			Y:     FromBase64Int(signerInput.Key.Y),
-		},
-		D: FromBase64Int(signerInput.Key.D),
-	}
+	return nil
 }
 
 func LoadExample(path string) WGExample {

@@ -30,7 +30,7 @@ func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	message, ok := decoded.(SignMessage)
 	assert.True(ok, fmt.Sprintf("%s: Error casting example CBOR to SignMessage", example.Title))
 
-	signer, err := NewSignerFromKey(alg, &privateKey)
+	signer, err := NewSignerFromKey(alg, privateKey)
 	assert.Nil(err, fmt.Sprintf("%s: Error creating signer %s", example.Title, err))
 
 	verifier := signer.Verifier()
@@ -86,6 +86,9 @@ var SkipExampleTitles = map[string]bool{
 	"ECDSA-sig-02: ECDSA - P-384 - sign1":               true, // ecdsa-sig-02.json
 	"ECDSA-03: ECDSA - P-512 - sign0":                   true, // ecdsa-sig-03.json
 	"ECDSA-sig-01: ECDSA - P-256 w/ SHA-512 - implicit": true, // ecdsa-sig-04.json
+	"EdDSA-02: EdDSA - 448":                             true, // eddsa-01.json
+	"EdDSA-01: EdDSA - 25519 - sign0":                   true, // eddsa-sig-01.json
+	"EdDSA-sig-02: EdDSA - 448 - sign1":                 true, // eddsa-sig-01.json
 }
 
 func ExpectCastToFail(title string) (shouldFail bool) {
@@ -96,10 +99,15 @@ func ExpectCastToFail(title string) (shouldFail bool) {
 }
 
 func TestWGExamples(t *testing.T) {
-	examples := append(
-		LoadExamples("./test/cose-wg-examples/sign-tests"),
-		LoadExamples("./test/cose-wg-examples/ecdsa-examples")...,
-	)
+	var examples []WGExample
+
+	for _, dir := range []string{
+		"sign-tests",
+		"eddsa-examples",
+		"ecdsa-examples",
+	} {
+		examples = append(examples, LoadExamples("./test/cose-wg-examples/"+dir)...)
+	}
 
 	for _, example := range examples {
 		t.Run(fmt.Sprintf("Example: %s %v", example.Title, example.Fail), func(t *testing.T) {

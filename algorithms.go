@@ -20,6 +20,9 @@ const (
 
 	// KeyTypeECDSA is the type to generate an ecdsa.PrivateKey
 	KeyTypeECDSA KeyType = iota
+
+	// KeyTypeEdDSA is the type to generate an eddsa.PrivateKey
+	KeyTypeEdDSA KeyType = iota
 )
 
 // Algorithm represents an IANA algorithm's parameters (Name,
@@ -42,7 +45,7 @@ type Algorithm struct {
 	Value              int
 
 	// optional fields
-	HashFunc           crypto.Hash    // hash function for SignMessages
+	HashFunc           *crypto.Hash    // hash function for SignMessages
 	privateKeyType     KeyType        // private key type to generate for new Signers
 
 	minRSAKeyBitLen    int            // minimimum RSA key size to generate in bits
@@ -75,21 +78,21 @@ var algorithms = []Algorithm{
 	Algorithm{
 		Name:            "PS256", // RSASSA-PSS w/ SHA-256 from [RFC8230]
 		Value:           -37,
-		HashFunc:        crypto.SHA256,
+		HashFunc:        func(h crypto.Hash) *crypto.Hash { return &h }(crypto.SHA256),
 		privateKeyType:  KeyTypeRSA,
 		minRSAKeyBitLen: 2048,
 	},
 	Algorithm{
 		Name:               "ES512", // ECDSA w/ SHA-512 from [RFC8152]
 		Value:              -36,
-		HashFunc:           crypto.SHA512,
+		HashFunc:           func(h crypto.Hash) *crypto.Hash { return &h }(crypto.SHA512),
 		privateKeyType:     KeyTypeECDSA,
 		privateKeyECDSACurve:    elliptic.P521(),
 	},
 	Algorithm{
 		Name:               "ES384", // ECDSA w/ SHA-384 from [RFC8152]
 		Value:              -35,
-		HashFunc:           crypto.SHA384,
+		HashFunc:           func(h crypto.Hash) *crypto.Hash { return &h }(crypto.SHA384),
 		privateKeyType:     KeyTypeECDSA,
 		privateKeyECDSACurve:    elliptic.P384(),
 	},
@@ -151,12 +154,13 @@ var algorithms = []Algorithm{
 	},
 	Algorithm{
 		Name:  "EdDSA", // EdDSA from [RFC8152]
+        privateKeyType: KeyTypeEdDSA,
 		Value: -8,
 	},
 	Algorithm{
 		Name:               "ES256", // ECDSA w/ SHA-256 from [RFC8152]
 		Value:              -7,
-		HashFunc:           crypto.SHA256,
+		HashFunc:           func(h crypto.Hash) *crypto.Hash { return &h }(crypto.SHA256),
 		privateKeyType:     KeyTypeECDSA,
 		privateKeyECDSACurve:    elliptic.P256(),
 	},

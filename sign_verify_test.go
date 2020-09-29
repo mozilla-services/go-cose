@@ -162,12 +162,12 @@ func TestSignMessageSignatureDigest(t *testing.T) {
 		err error
 	)
 
-	digest, err = msg.signatureDigest(external, signature, hashFunc)
+	digest, err = msg.signatureDigest(external, signature, &hashFunc)
 	assert.Equal(err.Error(), "Cannot compute signatureDigest on nil SignMessage")
 	assert.Equal(len(digest), 0)
 
 	msg = &SignMessage{}
-	digest, err = msg.signatureDigest(external, signature, hashFunc)
+	digest, err = msg.signatureDigest(external, signature, &hashFunc)
 	assert.Equal(err.Error(), "Cannot compute signatureDigest on nil SignMessage.Signatures")
 	assert.Equal(len(digest), 0)
 
@@ -179,7 +179,7 @@ func TestSignMessageSignatureDigest(t *testing.T) {
 		Headers: nil,
 		SignatureBytes: nil,
 	}
-	digest, err = msg.signatureDigest(external, signature, hashFunc)
+	digest, err = msg.signatureDigest(external, signature, &hashFunc)
 	assert.Equal(err.Error(), "SignMessage.Signatures does not include the signature to digest")
 	assert.Equal(len(digest), 0)
 
@@ -187,7 +187,7 @@ func TestSignMessageSignatureDigest(t *testing.T) {
 	signature = NewSignature()
 	signature.Headers.Protected[algTag] = ES256
 	msg.Signatures = []Signature{*signature}
-	digest, err = msg.signatureDigest(nil, signature, hashFunc)
+	digest, err = msg.signatureDigest(nil, signature, &hashFunc)
 	assert.Equal(err, nil, "signatureDigest does not accept nil external")
 }
 

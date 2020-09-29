@@ -120,7 +120,7 @@ func (m *SignMessage) SigStructure(external []byte, signature *Signature) (ToBeS
 // signatureDigest takes an extra external byte slice and a Signature
 // and returns the SigStructure (i.e. ToBeSigned) hashed using the
 // algorithm from the signature parameter
-func (m *SignMessage) signatureDigest(external []byte, signature *Signature, hashFunc crypto.Hash) (digest []byte, err error) {
+func (m *SignMessage) signatureDigest(external []byte, signature *Signature, hashFunc *crypto.Hash) (digest []byte, err error) {
 	if m == nil {
 		err = errors.Errorf("Cannot compute signatureDigest on nil SignMessage")
 		return
