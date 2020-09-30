@@ -113,9 +113,10 @@ func NewSigner(alg *Algorithm, options interface{}) (signer *Signer, err error) 
 // returns a Signer using the provided key
 func NewSignerFromKey(alg *Algorithm, privateKey interface{}) (signer *Signer, err error) {
 	switch privateKey.(type) {
-	case rsa.PrivateKey:
-	case ecdsa.PrivateKey:
-	case ed25519.PrivateKey:
+	case *rsa.PrivateKey:
+	case *ecdsa.PrivateKey:
+	case *ed25519.PrivateKey:
+	case *interface{}:
 	default:
 		return nil, ErrUnknownPrivateKeyType
 	}
@@ -126,15 +127,15 @@ func NewSignerFromKey(alg *Algorithm, privateKey interface{}) (signer *Signer, e
 }
 
 // Public returns the crypto.PublicKey for the Signer's privateKey
-func (s *Signer) Public() (publicKey interface{}) {
+func (s *Signer) Public() (publicKey crypto.PublicKey) {
 	switch key := s.PrivateKey.(type) {
-	case rsa.PrivateKey:
+	case *rsa.PrivateKey:
 		return key.Public()
-	case ecdsa.PrivateKey:
+	case *ecdsa.PrivateKey:
 		return key.Public()
-	case ed25519.PrivateKey:
+	case *ed25519.PrivateKey:
         if s.alg.privateKeyType == KeyTypeEdDSA {
-           priv := ed25519.NewKeyFromSeed(key)
+           priv := ed25519.NewKeyFromSeed(*key)
            return  priv.Public()
         }
 		panic("Could not return public key for Unrecognized private key type.")
@@ -146,7 +147,7 @@ func (s *Signer) Public() (publicKey interface{}) {
 // Sign returns the COSE signature as a byte slice
 func (s *Signer) Sign(rand io.Reader, digest []byte) (signature []byte, err error) {
 	switch key := s.PrivateKey.(type) {
-	case rsa.PrivateKey:
+	case *rsa.PrivateKey:
 		if s.alg.privateKeyType != KeyTypeRSA {
 			return nil, errors.Errorf("Key type must be RSA")
 		}
@@ -154,7 +155,7 @@ func (s *Signer) Sign(rand io.Reader, digest []byte) (signature []byte, err erro
 			return nil, errors.Errorf("RSA key must be at least %d bits long", s.alg.minRSAKeyBitLen)
 		}
 
-		sig, err := rsa.SignPSS(rand, &key, *s.alg.HashFunc, digest, &rsa.PSSOptions{
+		sig, err := rsa.SignPSS(rand, key, *s.alg.HashFunc, digest, &rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthEqualsHash,
 			Hash:       *s.alg.HashFunc,
 		})
@@ -162,22 +163,22 @@ func (s *Signer) Sign(rand io.Reader, digest []byte) (signature []byte, err erro
 			return nil, errors.Errorf("rsa.SignPSS error %s", err)
 		}
 		return sig, nil
-	case ed25519.PrivateKey:
+	case *ed25519.PrivateKey:
 		if s.alg.privateKeyType != KeyTypeEdDSA {
 			return nil, errors.Errorf("Key type must be EdDSA")
 		}
 
-        priv := ed25519.NewKeyFromSeed(key)
+        priv := ed25519.NewKeyFromSeed(*key)
 		s := ed25519.Sign(priv, digest)
 
 		return s, nil
-	case ecdsa.PrivateKey:
+	case *ecdsa.PrivateKey:
 		if s.alg.privateKeyType != KeyTypeECDSA {
 			return nil, errors.Errorf("Key type must be ECDSA")
 		}
 
 		// https://tools.ietf.org/html/rfc8152#section-8.1
-		r, s, err := ecdsa.Sign(rand, &key, digest)
+		r, s, err := ecdsa.Sign(rand, key, digest)
 		if err != nil {
 			return nil, errors.Errorf("ecdsa.Sign error %s", err)
 		}

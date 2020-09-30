@@ -1,6 +1,7 @@
 package cose
 
 import (
+    // "crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -887,49 +888,84 @@ func HexToBytesOrDie(s string) []byte {
 	return b
 }
 
-func LoadPrivateKey(example *WGExample) (key interface{}) {
+func LoadECPrivateKey(example *WGExample) (key ecdsa.PrivateKey) {
 	if len(example.Input.Sign.Signers) != 1 {
 		panic(fmt.Sprintf("Not one signer in example: %s", example.Title))
 	}
 	signerInput := example.Input.Sign.Signers[0]
 
 	var curve elliptic.Curve
-	switch signerInput.Key.Kty {
-	case "EC":
-		switch signerInput.Key.Crv {
-		case "P-256":
-			curve = elliptic.P256()
-		case "P-384":
-			curve = elliptic.P384()
-		case "P-521":
-			curve = elliptic.P521()
-		default:
-			log.Fatalf("Can't load Private key with curve type: %s", signerInput.Key.Crv)
-		}
-
-		return ecdsa.PrivateKey{
-			PublicKey: ecdsa.PublicKey{
-				Curve: curve,
-				X:     FromBase64Int(signerInput.Key.X),
-				Y:     FromBase64Int(signerInput.Key.Y),
-			},
-			D: FromBase64Int(signerInput.Key.D),
-		}
-	case "OKP":
-		switch signerInput.Key.Crv {
-		case "Ed25519":
-            val, _ := hex.DecodeString(signerInput.Key.DHex)
-            return ed25519.PrivateKey(val)
-        default:
-                log.Fatalf("Can't load Private key with curve type: %s", signerInput.Key.Crv)
-		}
+	switch signerInput.Key.Crv {
+	case "P-256":
+		curve = elliptic.P256()
+	case "P-384":
+		curve = elliptic.P384()
+	case "P-521":
+		curve = elliptic.P521()
 	default:
-		log.Fatalf("Can't load Private key with type: %s", signerInput.Key.Kty)
+		log.Fatalf("Can't load Private key with curve type: %s", signerInput.Key.Crv)
 	}
 
-	return nil
+	return ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: curve,
+			X:     FromBase64Int(signerInput.Key.X),
+			Y:     FromBase64Int(signerInput.Key.Y),
+		},
+		D: FromBase64Int(signerInput.Key.D),
+	}
 }
-
+func LoadOKPPrivateKey(example *WGExample) (key ed25519.PrivateKey) {
+	if len(example.Input.Sign.Signers) != 1 {
+		panic(fmt.Sprintf("Not one signer in example: %s", example.Title))
+	}
+	signerInput := example.Input.Sign.Signers[0]
+            val, _ := hex.DecodeString(signerInput.Key.DHex)
+            return ed25519.PrivateKey(val)
+}
+// func LoadPrivateKey(example *WGExample) (ecdsa.PrivateKey) {
+// 	if len(example.Input.Sign.Signers) != 1 {
+// 		panic(fmt.Sprintf("Not one signer in example: %s", example.Title))
+// 	}
+// 	signerInput := example.Input.Sign.Signers[0]
+//
+// 	var curve elliptic.Curve
+// 	switch signerInput.Key.Kty {
+// 	case "EC":
+// 		switch signerInput.Key.Crv {
+// 		case "P-256":
+// 			curve = elliptic.P256()
+// 		case "P-384":
+// 			curve = elliptic.P384()
+// 		case "P-521":
+// 			curve = elliptic.P521()
+// 		default:
+// 			log.Fatalf("Can't load Private key with curve type: %s", signerInput.Key.Crv)
+// 		}
+//
+// 		return ecdsa.PrivateKey{
+// 			PublicKey: ecdsa.PublicKey{
+// 				Curve: curve,
+// 				X:     FromBase64Int(signerInput.Key.X),
+// 				Y:     FromBase64Int(signerInput.Key.Y),
+// 			},
+// 			D: FromBase64Int(signerInput.Key.D),
+// 		}
+// 	// case "OKP":
+// 	// 	switch signerInput.Key.Crv {
+// 	// 	case "Ed25519":
+//     //         val, _ := hex.DecodeString(signerInput.Key.DHex)
+//     //         return ed25519.PrivateKey(val)
+//     //     default:
+//     //             log.Fatalf("Can't load Private key with curve type: %s", signerInput.Key.Crv)
+// 	// 	}
+// 	default:
+// 		log.Fatalf("Can't load Private key with type: %s", signerInput.Key.Kty)
+// 	}
+//
+// 	// return nil
+// }
+//
 func LoadExample(path string) WGExample {
 	var content, err = ioutil.ReadFile(path)
 	if err != nil {

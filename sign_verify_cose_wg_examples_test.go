@@ -11,7 +11,6 @@ import (
 
 func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	assert := assert.New(t)
-	privateKey := LoadPrivateKey(&example)
 
 	// testcases only include one signature
 	assert.Equal(len(example.Input.Sign.Signers), 1)
@@ -30,8 +29,17 @@ func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	message, ok := decoded.(SignMessage)
 	assert.True(ok, fmt.Sprintf("%s: Error casting example CBOR to SignMessage", example.Title))
 
-	signer, err := NewSignerFromKey(alg, privateKey)
-	assert.Nil(err, fmt.Sprintf("%s: Error creating signer %s", example.Title, err))
+    var signer *Signer
+    switch signerInput.Key.Kty {
+        case "EC":
+            privateKey := LoadECPrivateKey(&example)
+            signer, err = NewSignerFromKey(alg, &privateKey)
+            assert.Nil(err, fmt.Sprintf("%s: Error creating signer %s", example.Title, err))
+        case "OKP":
+            privateKey := LoadOKPPrivateKey(&example)
+            signer, err = NewSignerFromKey(alg, &privateKey)
+            assert.Nil(err, fmt.Sprintf("%s: Error creating signer %s", example.Title, err))
+    }
 
 	verifier := signer.Verifier()
 
