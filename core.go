@@ -3,6 +3,7 @@ package cose
 import (
 	"crypto"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
@@ -31,6 +32,9 @@ var (
 
 	// ES512 is ECDSA w/ SHA-512 from [RFC8152]
 	ES512 = getAlgByNameOrPanic("ES512")
+
+	// ES256 is EdDSA from [RFC8032]
+	EdDSA = getAlgByNameOrPanic("EdDSA")
 )
 
 // ByteSigner take a signature digest and returns COSE signature bytes
@@ -72,6 +76,13 @@ func NewSigner(alg *Algorithm, options interface{}) (signer *Signer, err error) 
 			err = errors.Wrapf(err, "error generating ecdsa signer private key")
 			return nil, err
 		}
+	} else if alg.privateKeyType == KeyTypeEdDSA {
+		_, privateKey, err = ed25519.GenerateKey(rand.Reader)
+
+		if err != nil {
+			err = errors.Wrapf(err, "error generating eddsa signer private key")
+			return nil, err
+		}
 	} else if alg.privateKeyType == KeyTypeRSA {
 		var keyBitLen int = alg.minRSAKeyBitLen
 
@@ -100,10 +111,12 @@ func NewSigner(alg *Algorithm, options interface{}) (signer *Signer, err error) 
 
 // NewSignerFromKey checks whether the privateKey is supported and
 // returns a Signer using the provided key
-func NewSignerFromKey(alg *Algorithm, privateKey crypto.PrivateKey) (signer *Signer, err error) {
+func NewSignerFromKey(alg *Algorithm, privateKey interface{}) (signer *Signer, err error) {
 	switch privateKey.(type) {
 	case *rsa.PrivateKey:
 	case *ecdsa.PrivateKey:
+	case *ed25519.PrivateKey:
+	case *interface{}:
 	default:
 		return nil, ErrUnknownPrivateKeyType
 	}
@@ -120,6 +133,12 @@ func (s *Signer) Public() (publicKey crypto.PublicKey) {
 		return key.Public()
 	case *ecdsa.PrivateKey:
 		return key.Public()
+	case *ed25519.PrivateKey:
+        if s.alg.privateKeyType == KeyTypeEdDSA {
+           priv := ed25519.NewKeyFromSeed(*key)
+           return  priv.Public()
+        }
+		panic("Could not return public key for Unrecognized private key type.")
 	default:
 		panic("Could not return public key for Unrecognized private key type.")
 	}
@@ -136,14 +155,23 @@ func (s *Signer) Sign(rand io.Reader, digest []byte) (signature []byte, err erro
 			return nil, errors.Errorf("RSA key must be at least %d bits long", s.alg.minRSAKeyBitLen)
 		}
 
-		sig, err := rsa.SignPSS(rand, key, s.alg.HashFunc, digest, &rsa.PSSOptions{
+		sig, err := rsa.SignPSS(rand, key, *s.alg.HashFunc, digest, &rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthEqualsHash,
-			Hash:       s.alg.HashFunc,
+			Hash:       *s.alg.HashFunc,
 		})
 		if err != nil {
 			return nil, errors.Errorf("rsa.SignPSS error %s", err)
 		}
 		return sig, nil
+	case *ed25519.PrivateKey:
+		if s.alg.privateKeyType != KeyTypeEdDSA {
+			return nil, errors.Errorf("Key type must be EdDSA")
+		}
+
+        priv := ed25519.NewKeyFromSeed(*key)
+		s := ed25519.Sign(priv, digest)
+
+		return s, nil
 	case *ecdsa.PrivateKey:
 		if s.alg.privateKeyType != KeyTypeECDSA {
 			return nil, errors.Errorf("Key type must be ECDSA")
@@ -207,9 +235,9 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 	case *rsa.PublicKey:
 		hashFunc := v.Alg.HashFunc
 
-		err = rsa.VerifyPSS(key, hashFunc, digest, signature, &rsa.PSSOptions{
+		err = rsa.VerifyPSS(key, *hashFunc, digest, signature, &rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthEqualsHash,
-			Hash:       hashFunc,
+			Hash:       *hashFunc,
 		})
 		if err != nil {
 			return errors.Errorf("verification failed rsa.VerifyPSS err %s", err)
@@ -238,6 +266,12 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 		s := big.NewInt(0).SetBytes(signature[algKeyBytesSize:])
 
 		ok := ecdsa.Verify(key, digest, r, s)
+		if ok {
+			return nil
+		}
+		return ErrECDSAVerification
+	case ed25519.PublicKey:
+        ok := ed25519.Verify(key, digest, signature)
 		if ok {
 			return nil
 		}
@@ -277,8 +311,12 @@ func buildAndMarshalSigStructure(bodyProtected, signProtected, external, payload
 }
 
 // hashSigStructure computes the crypto.Hash digest of a byte slice
-func hashSigStructure(ToBeSigned []byte, hash crypto.Hash) (digest []byte, err error) {
-	if !hash.Available() {
+func hashSigStructure(ToBeSigned []byte, hash *crypto.Hash) (digest []byte, err error) {
+	if hash == nil {
+		return ToBeSigned, nil
+	}
+
+    if !hash.Available() {
 		return []byte(""), ErrUnavailableHashFunc
 	}
 	hasher := hash.New()
