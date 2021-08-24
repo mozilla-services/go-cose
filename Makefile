@@ -21,20 +21,11 @@ fuzz: install-go-fuzz
 	go-fuzz-build go.mozilla.org/cose
 	go-fuzz -bin=./cose-fuzz.zip -workdir=workdir
 
-lint:
-	golint
-
-vet:
-	go vet
-
 coverage:
 	go test -v -cover -race -coverprofile=coverage.out && go tool cover -html=coverage.out
 
 what-todo:
 	rg -g '**/*.go' -i TODO
-
-install-golint:
-	go get -u golang.org/x/lint/golint
 
 goveralls:
 	go get -u github.com/mattn/goveralls
@@ -43,5 +34,5 @@ smoketest-examples:
 	go run example/sign.go
 	go run example/verify.go
 
-ci: install-golint goveralls install coverage lint vet
+ci: goveralls install coverage
 	goveralls -coverprofile=coverage.out -service=circle-ci -repotoken=$(COVERALLS_TOKEN)
