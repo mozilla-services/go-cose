@@ -256,28 +256,28 @@ func TestI2OSPTiming(t *testing.T) {
 		zero        = big.NewInt(int64(0))
 		biggerN     = rsaPrivateKey.Primes[0]
 		biggerNSize = len(biggerN.Bytes())
-		call_args   = []struct {
+		callArgs    = []struct {
 			N    *big.Int
 			Size int
 		}{
 			{zero, biggerNSize},
 			{biggerN, biggerNSize},
 		}
-		elapsed_times []time.Duration
+		elapsedTimes []time.Duration
 	)
 	if os.Getenv("CI") == "true" {
 		toleranceNS = int64(50000) // i.e. 50 microseconds
 		fmt.Printf("I2OSPTiming using larger timing diff in CI of %s", time.Duration(toleranceNS))
 	}
 
-	for _, args := range call_args {
+	for _, args := range callArgs {
 		start := time.Now()
 		I2OSP(args.N, args.Size)
-		elapsed_times = append(elapsed_times, time.Since(start))
+		elapsedTimes = append(elapsedTimes, time.Since(start))
 	}
-	assert.Equal(len(call_args), len(elapsed_times))
+	assert.Equal(len(callArgs), len(elapsedTimes))
 
-	diff := int64(elapsed_times[0]) - int64(elapsed_times[1])
+	diff := int64(elapsedTimes[0]) - int64(elapsedTimes[1])
 	if diff < 0 {
 		diff = -diff
 	}
