@@ -68,16 +68,16 @@ func TestNewSigner(t *testing.T) {
 
 	edDSA := getAlgByNameOrPanic("EdDSA")
 
-	signer, err := NewSigner(edDSA, nil)
+	_, err = NewSigner(edDSA, nil)
 	assert.NotNil(err)
 	assert.Equal(err.Error(), ErrUnknownPrivateKeyType.Error())
 
 	edDSA.privateKeyType = KeyTypeECDSA
-	signer, err = NewSigner(edDSA, nil)
+	_, err = NewSigner(edDSA, nil)
 	assert.NotNil(err)
 	assert.Equal(err.Error(), "No ECDSA curve found for algorithm")
 
-	signer, err = NewSigner(PS256, RSAOptions{Size: 2050})
+	signer, err := NewSigner(PS256, RSAOptions{Size: 2050})
 	assert.Nil(err)
 	rkey := signer.PrivateKey.(*rsa.PrivateKey)
 	keySize := rkey.D.BitLen()
