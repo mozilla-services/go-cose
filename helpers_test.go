@@ -29,7 +29,7 @@ import (
 // 0x\([a-f0-9]+\)^J → 0x\1,^J
 // s/];/}/g
 
-var PKCS8_P256_EE = [...]byte{
+var pkcs8P256EndEntity = [...]byte{
 	0x30, 0x81, 0x87, 0x02, 0x01, 0x00, 0x30, 0x13, 0x06, 0x07, 0x2a,
 	0x86, 0x48, 0xce, 0x3d, 0x02, 0x01, 0x06, 0x08, 0x2a, 0x86, 0x48,
 	0xce, 0x3d, 0x03, 0x01, 0x07, 0x04, 0x6d, 0x30, 0x6b, 0x02, 0x01,
@@ -45,7 +45,7 @@ var PKCS8_P256_EE = [...]byte{
 	0x04, 0xea, 0xa0, 0x4a, 0xa6, 0xc0, 0x0a,
 }
 
-var P256_EE = [...]byte{
+var p256EndEntity = [...]byte{
 	0x30, 0x82, 0x01, 0x28, 0x30, 0x81, 0xcf, 0xa0, 0x03, 0x02, 0x01, 0x02,
 	0x02, 0x14, 0x2f, 0xc3, 0x5f, 0x05, 0x80, 0xb4, 0x49, 0x45, 0x13, 0x92,
 	0xd6, 0x93, 0xb7, 0x2d, 0x71, 0x19, 0xc5, 0x8c, 0x40, 0x39, 0x30, 0x0a,
@@ -73,7 +73,7 @@ var P256_EE = [...]byte{
 	0xc1, 0xcf, 0x88, 0xc2, 0xc8, 0x2a, 0x32, 0xf5, 0x42, 0x0c, 0xfa, 0x0b,
 }
 
-var PKCS8_P384_EE = [...]byte{
+var pkcs8P384EndEntity = [...]byte{
 	0x30, 0x81, 0xb6, 0x02, 0x01, 0x00, 0x30, 0x10, 0x06, 0x07, 0x2a, 0x86,
 	0x48, 0xce, 0x3d, 0x02, 0x01, 0x06, 0x05, 0x2b, 0x81, 0x04, 0x00, 0x22,
 	0x04, 0x81, 0x9e, 0x30, 0x81, 0x9b, 0x02, 0x01, 0x01, 0x04, 0x30, 0x03,
@@ -92,7 +92,7 @@ var PKCS8_P384_EE = [...]byte{
 	0x74, 0xaa, 0x6e, 0xa9, 0xce,
 }
 
-var PKCS8_P521_EE = [...]byte{
+var pkcs8P521EndEntity = [...]byte{
 	0x30, 0x81, 0xed, 0x02, 0x01, 0x00, 0x30, 0x10, 0x06, 0x07, 0x2a, 0x86,
 	0x48, 0xce, 0x3d, 0x02, 0x01, 0x06, 0x05, 0x2b, 0x81, 0x04, 0x00, 0x23,
 	0x04, 0x81, 0xd5, 0x30, 0x81, 0xd2, 0x02, 0x01, 0x01, 0x04, 0x42, 0x01,
@@ -115,7 +115,7 @@ var PKCS8_P521_EE = [...]byte{
 	0x3f, 0x81, 0xea, 0x66, 0x95, 0x6d, 0xfe, 0xaa, 0x2b, 0xfd, 0xfc, 0xf5,
 }
 
-var P521_EE = [...]byte{
+var p521EndEntity = [...]byte{
 	0x30, 0x82, 0x01, 0x6b, 0x30, 0x82, 0x01, 0x12, 0xa0, 0x03, 0x02, 0x01,
 	0x02, 0x02, 0x14, 0x49, 0xdb, 0x7d, 0xec, 0x87, 0x2b, 0x95, 0xfc, 0xfb,
 	0x57, 0xfb, 0xc8, 0xd5, 0x57, 0xb7, 0x3a, 0x10, 0xcc, 0xf1, 0x7a, 0x30,
@@ -149,7 +149,7 @@ var P521_EE = [...]byte{
 	0x2e, 0x32, 0xb1, 0x69, 0x4b, 0x20, 0xc4,
 }
 
-var P384_EE = [...]byte{
+var p384EndEntity = [...]byte{
 	0x30, 0x82, 0x01, 0x45, 0x30, 0x81, 0xec, 0xa0, 0x03, 0x02, 0x01, 0x02,
 	0x02, 0x14, 0x79, 0xe3, 0x1c, 0x60, 0x97, 0xa4, 0x3c, 0x3b, 0x82, 0x11,
 	0x42, 0x37, 0xaf, 0x57, 0x05, 0xa8, 0xde, 0xd3, 0x40, 0x58, 0x30, 0x0a,
@@ -180,7 +180,7 @@ var P384_EE = [...]byte{
 	0xbf, 0xe5, 0x68, 0x86, 0x49,
 }
 
-var P256_INT = [...]byte{
+var p256Intermediate = [...]byte{
 	0x30, 0x82, 0x01, 0x48, 0x30, 0x81, 0xf0, 0xa0, 0x03, 0x02, 0x01,
 	0x02, 0x02, 0x14, 0x43, 0x63, 0x59, 0xad, 0x04, 0x34, 0x56, 0x80,
 	0x43, 0xec, 0x90, 0x6a, 0xd4, 0x10, 0x64, 0x7c, 0x7f, 0x38, 0x32,
@@ -214,7 +214,7 @@ var P256_INT = [...]byte{
 	0x30, 0xa7,
 }
 
-var P256_ROOT = [...]byte{
+var p256Root = [...]byte{
 	0x30, 0x82, 0x01, 0x4a, 0x30, 0x81, 0xf1, 0xa0, 0x03, 0x02, 0x01, 0x02,
 	0x02, 0x14, 0x5f, 0x3f, 0xae, 0x90, 0x49, 0x30, 0x2f, 0x33, 0x6e, 0x95,
 	0x23, 0xa7, 0xcb, 0x23, 0xd7, 0x65, 0x4f, 0xea, 0x3c, 0xf7, 0x30, 0x0a,
@@ -245,7 +245,7 @@ var P256_ROOT = [...]byte{
 	0x54, 0xc8, 0x9f, 0xef, 0xb8, 0x5d, 0xa2, 0x40, 0xd9, 0x8b,
 }
 
-var PKCS8_RSA_EE = [...]byte{
+var pkcs8RSAEndEntity = [...]byte{
 	0x30, 0x82, 0x04, 0xbe, 0x02, 0x01, 0x00, 0x30, 0x0d, 0x06, 0x09, 0x2a,
 	0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00, 0x04, 0x82,
 	0x04, 0xa8, 0x30, 0x82, 0x04, 0xa4, 0x02, 0x01, 0x00, 0x02, 0x82, 0x01,
@@ -350,7 +350,7 @@ var PKCS8_RSA_EE = [...]byte{
 	0xaf, 0x6c, 0x43, 0x24, 0x7f, 0x43,
 }
 
-var RSA_EE = [...]byte{
+var rsaEndEntity = [...]byte{
 	0x30, 0x82, 0x02, 0xaf, 0x30, 0x82, 0x01, 0x99, 0xa0, 0x03, 0x02, 0x01,
 	0x02, 0x02, 0x14, 0x07, 0x1c, 0x3b, 0x71, 0x08, 0xbe, 0xd7, 0x9f, 0xfd,
 	0xaf, 0x26, 0xb6, 0x08, 0xa3, 0x99, 0x06, 0x77, 0x69, 0x32, 0x7e, 0x30,
@@ -411,7 +411,7 @@ var RSA_EE = [...]byte{
 	0x5b, 0x63, 0x2c, 0x80, 0x80, 0xa6, 0x84,
 }
 
-var RSA_INT = [...]byte{
+var rsaIntermediate = [...]byte{
 	0x30, 0x82, 0x02, 0xd0, 0x30, 0x82, 0x01, 0xba, 0xa0, 0x03, 0x02, 0x01,
 	0x02, 0x02, 0x14, 0x07, 0x10, 0xaf, 0xc4, 0x1a, 0x3a, 0x56, 0x4f, 0xd8,
 	0xc2, 0xcc, 0x46, 0xd7, 0x5b, 0xdf, 0x1c, 0x4e, 0x2f, 0x49, 0x3a, 0x30,
@@ -475,7 +475,7 @@ var RSA_INT = [...]byte{
 	0x87, 0xc6, 0x5c, 0x51,
 }
 
-var RSA_ROOT = [...]byte{
+var rsaRoot = [...]byte{
 	0x30, 0x82, 0x02, 0xd1, 0x30, 0x82, 0x01, 0xbb, 0xa0, 0x03, 0x02, 0x01,
 	0x02, 0x02, 0x14, 0x29, 0x6c, 0x1a, 0xd8, 0x20, 0xcd, 0x74, 0x6d, 0x4b,
 	0x00, 0xf3, 0x16, 0x88, 0xd9, 0x66, 0x87, 0x5f, 0x28, 0x56, 0x6a, 0x30,
@@ -539,7 +539,7 @@ var RSA_ROOT = [...]byte{
 	0xf0, 0xef, 0x7d, 0x94, 0xb5,
 }
 
-var XPI_SIGNATURE = [...]byte{
+var xpiSignature = [...]byte{
 	0xd8, 0x62, 0x84, 0x43, 0xa1, 0x04, 0x80, 0xa0, 0xf6, 0x81, 0x83, 0x59,
 	0x02, 0x35, 0xa2, 0x01, 0x26, 0x04, 0x59, 0x02, 0x2e, 0x30, 0x82, 0x02,
 	0x2a, 0x30, 0x82, 0x01, 0x12, 0xa0, 0x03, 0x02, 0x01, 0x02, 0x02, 0x14,
@@ -596,7 +596,7 @@ var XPI_SIGNATURE = [...]byte{
 	0x37, 0xde, 0x26, 0xbc, 0xe9, 0x83, 0x0e, 0xd8, 0x90, 0xa3,
 }
 
-var XPI_PAYLOAD = [...]byte{
+var xpiPayload = [...]byte{
 	0x4E, 0x61, 0x6D, 0x65, 0x3A, 0x20, 0x6D, 0x61, 0x6E, 0x69, 0x66, 0x65,
 	0x73, 0x74, 0x2E, 0x6A, 0x73, 0x6F, 0x6E, 0x0A, 0x53, 0x48, 0x41, 0x32,
 	0x35, 0x36, 0x2D, 0x44, 0x69, 0x67, 0x65, 0x73, 0x74, 0x3A, 0x20, 0x42,
@@ -626,7 +626,7 @@ var XPI_PAYLOAD = [...]byte{
 // SignatureAlgorithm::\([A-Z0-9]+\) → getAlgByNameOrPanic("\1")
 // s/&test:://g
 // s/: COSERustSignatureParameters//g
-// s/_EE/_EE[:]/g
+// s/_EE/EndEntity[:]/g
 
 type COSERustSignatureParameters struct {
 	certificate []byte
@@ -634,25 +634,25 @@ type COSERustSignatureParameters struct {
 	pkcs8       []byte
 }
 
-var P256_PARAMS = COSERustSignatureParameters{
-	certificate: P256_EE[:],
+var p256Params = COSERustSignatureParameters{
+	certificate: p256EndEntity[:],
 	algorithm:   ES256,
-	pkcs8:       PKCS8_P256_EE[:],
+	pkcs8:       pkcs8P256EndEntity[:],
 }
-var P384_PARAMS = COSERustSignatureParameters{
-	certificate: P384_EE[:],
+var p384Params = COSERustSignatureParameters{
+	certificate: p384EndEntity[:],
 	algorithm:   ES384,
-	pkcs8:       PKCS8_P384_EE[:],
+	pkcs8:       pkcs8P384EndEntity[:],
 }
-var P521_PARAMS = COSERustSignatureParameters{
-	certificate: P521_EE[:],
+var p521Params = COSERustSignatureParameters{
+	certificate: p521EndEntity[:],
 	algorithm:   ES512,
-	pkcs8:       PKCS8_P521_EE[:],
+	pkcs8:       pkcs8P521EndEntity[:],
 }
-var RSA_PARAMS = COSERustSignatureParameters{
-	certificate: RSA_EE[:],
+var rsaParams = COSERustSignatureParameters{
+	certificate: rsaEndEntity[:],
 	algorithm:   PS256,
-	pkcs8:       PKCS8_RSA_EE[:],
+	pkcs8:       pkcs8RSAEndEntity[:],
 }
 
 type RustTestCase struct {
@@ -676,10 +676,10 @@ var RustTestCases = []RustTestCase{
 	// 	Title: "test_nss_sign_verify",
 	// 	SignPayload: []byte("sample"),
 	// 	SignAlg: getAlgByNameOrPanic("ES256"),
-	// 	// nss::sign(&SignatureAlgorithm::ES256, PKCS8_P256_EE, payload)
+	// 	// nss::sign(&SignatureAlgorithm::ES256, pkcs8P256EndEntity, payload)
 	// 	// nss::verify_signature(
 	// 	// 	&SignatureAlgorithm::ES256,
-	// 	// 	P256_EE,
+	// 	// 	p256EndEntity,
 	// 	// 	payload,
 	// 	// 	&signature_result,
 	// 	// ).is_ok()
@@ -691,10 +691,10 @@ var RustTestCases = []RustTestCase{
 	// 	SignAlg: getAlgByNameOrPanic("ES256"),
 	// 	VerifyPayload: []byte("sampli"),
 	//
-	// 	// nss::sign(&SignatureAlgorithm::ES256, PKCS8_P256_EE, payload);
+	// 	// nss::sign(&SignatureAlgorithm::ES256, pkcs8P256EndEntity, payload);
 	// 	// verify_result = nss::verify_signature(
 	// 	// &SignatureAlgorithm::ES256,
-	// 	// P256_EE,
+	// 	// p256EndEntity,
 	// 	// payload,
 	// 	// &signature_result,
 	// 	// );
@@ -709,7 +709,7 @@ var RustTestCases = []RustTestCase{
 
 	// 	// verify_result = nss::verify_signature(
 	// 	// 	&SignatureAlgorithm::ES256,
-	// 	// 	P384_EE,
+	// 	// 	p384EndEntity,
 	// 	// 	payload,
 	// 	// 	&signature_result,
 	// 	// );
@@ -721,64 +721,64 @@ var RustTestCases = []RustTestCase{
 	{
 		Title:           "test_cose_sign_verify_two_signatures_tampered_signature",
 		SignPayload:     []byte("This is the content."),
-		Certs:           [][]byte{P256_ROOT[:], P256_INT[:], RSA_ROOT[:], RSA_INT[:]},
-		Params:          []COSERustSignatureParameters{P256_PARAMS, RSA_PARAMS},
+		Certs:           [][]byte{p256Root[:], p256Intermediate[:], rsaRoot[:], rsaIntermediate[:]},
+		Params:          []COSERustSignatureParameters{p256Params, rsaParams},
 		VerifyResult:    ErrECDSAVerification,
 		ModifySignature: true,
 	},
 	{
 		Title:         "test_cose_sign_verify_two_signatures_tampered_payload",
 		SignPayload:   []byte("This is the content."),
-		Certs:         [][]byte{P256_ROOT[:], P256_INT[:], RSA_ROOT[:], RSA_INT[:]},
-		Params:        []COSERustSignatureParameters{P256_PARAMS, RSA_PARAMS},
+		Certs:         [][]byte{p256Root[:], p256Intermediate[:], rsaRoot[:], rsaIntermediate[:]},
+		Params:        []COSERustSignatureParameters{p256Params, rsaParams},
 		VerifyResult:  ErrECDSAVerification,
 		ModifyPayload: true,
 	},
 	{
 		Title:       "test_cose_sign_verify_two_signatures",
 		SignPayload: []byte("This is the content."),
-		Certs:       [][]byte{P256_ROOT[:], P256_INT[:], RSA_ROOT[:], RSA_INT[:]},
-		Params:      []COSERustSignatureParameters{P256_PARAMS, RSA_PARAMS},
+		Certs:       [][]byte{p256Root[:], p256Intermediate[:], rsaRoot[:], rsaIntermediate[:]},
+		Params:      []COSERustSignatureParameters{p256Params, rsaParams},
 	},
 	{
 		Title:           "test_cose_sign_verify_rsa_tampered_signature",
 		SignPayload:     []byte("This is the RSA-signed content."),
-		Certs:           [][]byte{RSA_ROOT[:], RSA_INT[:]},
-		Params:          []COSERustSignatureParameters{RSA_PARAMS},
+		Certs:           [][]byte{rsaRoot[:], rsaIntermediate[:]},
+		Params:          []COSERustSignatureParameters{rsaParams},
 		VerifyResult:    ErrRSAPSSVerification,
 		ModifySignature: true,
 	},
 	{
 		Title:         "test_cose_sign_verify_rsa_modified_payload",
 		SignPayload:   []byte("This is the RSA-signed content."),
-		Certs:         [][]byte{RSA_ROOT[:], RSA_INT[:]},
-		Params:        []COSERustSignatureParameters{RSA_PARAMS},
+		Certs:         [][]byte{rsaRoot[:], rsaIntermediate[:]},
+		Params:        []COSERustSignatureParameters{rsaParams},
 		VerifyResult:  ErrRSAPSSVerification,
 		ModifyPayload: true,
 	},
 	{
 		Title:       "test_cose_sign_verify_rsa",
 		SignPayload: []byte("This is the RSA-signed content."),
-		Certs:       [][]byte{RSA_ROOT[:], RSA_INT[:]},
-		Params:      []COSERustSignatureParameters{RSA_PARAMS},
+		Certs:       [][]byte{rsaRoot[:], rsaIntermediate[:]},
+		Params:      []COSERustSignatureParameters{rsaParams},
 	},
 	{
 		Title:           "test_cose_sign_verify_tampered_signature",
 		SignPayload:     []byte("This is the content."),
-		Certs:           [][]byte{P256_ROOT[:], P256_INT[:]},
-		Params:          []COSERustSignatureParameters{P256_PARAMS},
+		Certs:           [][]byte{p256Root[:], p256Intermediate[:]},
+		Params:          []COSERustSignatureParameters{p256Params},
 		VerifyResult:    ErrECDSAVerification,
 		ModifySignature: true,
 	},
 	// {
 	// 	Title: "test_cose_sign_verify_wrong_cert",
 	// 	SignPayload: []byte("This is the content."),
-	// 	Certs: [][]byte{P256_ROOT[:], P256_INT[:], },
+	// 	Certs: [][]byte{p256Root[:], p256Intermediate[:], },
 	// 	Params: []COSERustSignatureParameters{
 	// 		COSERustSignatureParameters{
-	// 			certificate: P384_EE[:],
+	// 			certificate: p384EndEntity[:],
 	// 			algorithm: ES256,
-	// 			pkcs8: PKCS8_P256_EE[:],
+	// 			pkcs8: pkcs8P256EndEntity[:],
 	// 		},
 	// 	},
 	// 	// test_verify_verification_fails(payload, &certs, params_vec);
@@ -786,8 +786,8 @@ var RustTestCases = []RustTestCase{
 	{
 		Title:         "test_cose_sign_verify_modified_payload",
 		SignPayload:   []byte("This is the content."),
-		Certs:         [][]byte{P256_ROOT[:], P256_INT[:]},
-		Params:        []COSERustSignatureParameters{P256_PARAMS},
+		Certs:         [][]byte{p256Root[:], p256Intermediate[:]},
+		Params:        []COSERustSignatureParameters{p256Params},
 		VerifyResult:  ErrECDSAVerification,
 		ModifyPayload: true,
 	},
@@ -796,33 +796,33 @@ var RustTestCases = []RustTestCase{
 	// 	Title: "test_cose_verify_xpi_signature",
 	// 	SignPayload: []byte(""),
 	// 	// test::setup();
-	// 	// assert!(verify_signature(XPI_PAYLOAD, test::XPI_SIGNATURE.to_vec()).is_ok
+	// 	// assert!(verify_signature(xpi_payload, test::xpiSignature.to_vec()).is_ok
 	// },
 
 	// NB: These are split out a different tests from test_cose_sign_verify in cose-rust
 	{
 		Title:       "test_cose_sign_verify_P256",
 		SignPayload: []byte("This is the content."),
-		Certs:       [][]byte{P256_ROOT[:], P256_INT[:]},
-		Params:      []COSERustSignatureParameters{P256_PARAMS},
+		Certs:       [][]byte{p256Root[:], p256Intermediate[:]},
+		Params:      []COSERustSignatureParameters{p256Params},
 	},
 	{
 		Title:       "test_cose_sign_verify_P256_no_other_certs",
 		SignPayload: []byte("This is the content."),
 		Certs:       [][]byte{},
-		Params:      []COSERustSignatureParameters{P256_PARAMS},
+		Params:      []COSERustSignatureParameters{p256Params},
 	},
 	{
 		Title:       "test_cose_sign_verify_P384_no_other_certs",
 		SignPayload: []byte("This is the content."),
 		Certs:       [][]byte{},
-		Params:      []COSERustSignatureParameters{P384_PARAMS},
+		Params:      []COSERustSignatureParameters{p384Params},
 	},
 	{
 		Title:       "test_cose_sign_verify_P521_no_other_certs",
 		SignPayload: []byte("This is the content."),
 		Certs:       [][]byte{},
-		Params:      []COSERustSignatureParameters{P521_PARAMS},
+		Params:      []COSERustSignatureParameters{p521Params},
 	},
 }
 
