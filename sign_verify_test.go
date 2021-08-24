@@ -187,7 +187,7 @@ func TestSignMessageSignatureDigest(t *testing.T) {
 	signature = NewSignature()
 	signature.Headers.Protected[algTag] = ES256
 	msg.Signatures = []Signature{*signature}
-	digest, err = msg.signatureDigest(nil, signature, hashFunc)
+	_, err = msg.signatureDigest(nil, signature, hashFunc)
 	assert.Equal(err, nil, "signatureDigest does not accept nil external")
 }
 
