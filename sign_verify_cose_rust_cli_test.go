@@ -31,7 +31,7 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 	}
 	msgHeaders.Protected[kidTag] = testCase.Certs
 	message.Headers = msgHeaders
-	message.Payload = []byte(testCase.SignPayload)
+	message.Payload = testCase.SignPayload
 
 	for _, param := range testCase.Params {
 		key, err := x509.ParsePKCS8PrivateKey(param.pkcs8)
@@ -77,7 +77,7 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 	cmd := exec.Command("cargo", "run", "--quiet", "--color", "never", "--example", "sign_verify",
 		"--",
 		"verify",
-		hex.EncodeToString([]byte(testCase.SignPayload)),
+		hex.EncodeToString(testCase.SignPayload),
 		hex.EncodeToString(msgBytes))
 
 	cmd.Dir = "./test/cose-rust"
