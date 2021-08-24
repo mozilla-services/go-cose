@@ -169,7 +169,7 @@ func TestGetAlgWithString(t *testing.T) {
 	alg, err = getAlg(h)
 	assert.Nil(alg)
 	assert.NotNil(err)
-	assert.Equal(err.Error(), "Algorithm named ROT13 not found")
+	assert.Equal(err.Error(), "error fetching alg")
 
 	h.Protected["alg"] = "ES256"
 	alg, err = getAlg(h)
