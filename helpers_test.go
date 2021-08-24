@@ -911,20 +911,6 @@ func LoadPrivateKey(example *WGExample) (key ecdsa.PrivateKey) {
 	}
 }
 
-func LoadExample(path string) WGExample {
-	var content, err = ioutil.ReadFile(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var example WGExample
-	err = json.Unmarshal(content, &example)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return example
-}
-
 // LoadExamples
 func LoadExamples(path string) []WGExample {
 	files, err := ioutil.ReadDir(path)
