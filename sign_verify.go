@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"crypto"
 	"fmt"
-	"io"
 	"github.com/pkg/errors"
+	"io"
 )
 
 // Signature represents a COSE signature with CDDL fragment:

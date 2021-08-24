@@ -656,10 +656,10 @@ var RSA_PARAMS = COSERustSignatureParameters{
 }
 
 type RustTestCase struct {
-	Title         string         // test fn name in cose-rust/examples/sign_verify/main.rs
+	Title         string     // test fn name in cose-rust/examples/sign_verify/main.rs
 	SignAlg       *Algorithm // COSE signing algorithm to use
-	SignPayload   []byte         // payload to sign
-	VerifyPayload []byte         // payload to verify (defaults to SignPayload)
+	SignPayload   []byte     // payload to sign
+	VerifyPayload []byte     // payload to verify (defaults to SignPayload)
 	Certs         [][]byte
 	Params        []COSERustSignatureParameters
 	// SignError // expected error nil for success/ok

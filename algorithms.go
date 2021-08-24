@@ -11,6 +11,7 @@ import (
 // KeyType is the type to use in keyOptions to tell MakeDEREndEntity
 // which type of crypto.PrivateKey to generate
 type KeyType int
+
 const (
 	// KeyTypeUnsupported is the type to not generate a key
 	KeyTypeUnsupported KeyType = iota
@@ -38,16 +39,16 @@ const (
 // https://tools.ietf.org/html/rfc8152#section-16.4
 //
 type Algorithm struct {
-	Name               string
-	Value              int
+	Name  string
+	Value int
 
 	// optional fields
-	HashFunc           crypto.Hash    // hash function for SignMessages
-	privateKeyType     KeyType        // private key type to generate for new Signers
+	HashFunc       crypto.Hash // hash function for SignMessages
+	privateKeyType KeyType     // private key type to generate for new Signers
 
-	minRSAKeyBitLen    int            // minimimum RSA key size to generate in bits
+	minRSAKeyBitLen int // minimimum RSA key size to generate in bits
 
-	privateKeyECDSACurve    elliptic.Curve // ecdsa private key curve type
+	privateKeyECDSACurve elliptic.Curve // ecdsa private key curve type
 }
 
 // algorithms is an array/slice of IANA algorithms
@@ -80,18 +81,18 @@ var algorithms = []Algorithm{
 		minRSAKeyBitLen: 2048,
 	},
 	Algorithm{
-		Name:               "ES512", // ECDSA w/ SHA-512 from [RFC8152]
-		Value:              -36,
-		HashFunc:           crypto.SHA512,
-		privateKeyType:     KeyTypeECDSA,
-		privateKeyECDSACurve:    elliptic.P521(),
+		Name:                 "ES512", // ECDSA w/ SHA-512 from [RFC8152]
+		Value:                -36,
+		HashFunc:             crypto.SHA512,
+		privateKeyType:       KeyTypeECDSA,
+		privateKeyECDSACurve: elliptic.P521(),
 	},
 	Algorithm{
-		Name:               "ES384", // ECDSA w/ SHA-384 from [RFC8152]
-		Value:              -35,
-		HashFunc:           crypto.SHA384,
-		privateKeyType:     KeyTypeECDSA,
-		privateKeyECDSACurve:    elliptic.P384(),
+		Name:                 "ES384", // ECDSA w/ SHA-384 from [RFC8152]
+		Value:                -35,
+		HashFunc:             crypto.SHA384,
+		privateKeyType:       KeyTypeECDSA,
+		privateKeyECDSACurve: elliptic.P384(),
 	},
 	Algorithm{
 		Name:  "ECDH-SS + A256KW", // ECDH SS w/ Concat KDF and AES Key Wrap w/ 256-bit key from [RFC8152]
@@ -154,11 +155,11 @@ var algorithms = []Algorithm{
 		Value: -8,
 	},
 	Algorithm{
-		Name:               "ES256", // ECDSA w/ SHA-256 from [RFC8152]
-		Value:              -7,
-		HashFunc:           crypto.SHA256,
-		privateKeyType:     KeyTypeECDSA,
-		privateKeyECDSACurve:    elliptic.P256(),
+		Name:                 "ES256", // ECDSA w/ SHA-256 from [RFC8152]
+		Value:                -7,
+		HashFunc:             crypto.SHA256,
+		privateKeyType:       KeyTypeECDSA,
+		privateKeyECDSACurve: elliptic.P256(),
 	},
 	Algorithm{
 		Name:  "direct", // Direct use of CEK from [RFC8152]
