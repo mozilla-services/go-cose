@@ -1,6 +1,6 @@
 # go-cose
 
-[![CircleCI](https://circleci.com/gh/mozilla-services/go-cose.svg?style=svg)](https://circleci.com/gh/mozilla-services/go-cose) 
+[![CircleCI](https://circleci.com/gh/mozilla-services/go-cose.svg?style=svg)](https://circleci.com/gh/mozilla-services/go-cose)
 [![Coverage Status](https://coveralls.io/repos/github/mozilla-services/go-cose/badge.svg)](https://coveralls.io/github/mozilla-services/go-cose)
 
 A [COSE](https://tools.ietf.org/html/rfc8152) library for go.
@@ -19,20 +19,20 @@ go get -u go.mozilla.org/cose
 
 ### Signing a message
 
-See [example/sign.go](example/sign.go) and run it with:
+See [example/sign/sign.go](example/sign/sign.go) and run it with:
 
 ```console
-$ go run example/sign.go
+$ go run example/sign/sign.go
 Bit lengths of integers r and s (256 and 256) do not match the key length 255
 Message signature (ES256): 043685f99421f9e80c7c3c50d0fc8266161d3d614aaa3b63d2cdf581713fca62bb5d2e34d2352dbe41424b31d0b4a11d6b2d4764c18e2af04f4520fbe494d51c
 ```
 
 ### Verifying a message
 
-See [example/verify.go](example/verify.go) and run it with:
+See [example/verify/verify.go](example/verify/verify.go) and run it with:
 
 ```console
-$ go run example/verify.go
+$ go run example/verify/verify.go
 Bit lengths of integers r and s (256 and 254) do not match the key length 254
 Message signature (ES256): 9411dc5200c1cb67ccd76424ade09ce89c4a8d8d2b66f2bbf70edf63beb2dc3cbde83250773e659b635d3715442a1efaa6b0c030ee8a2523c3e37a22ddb055fa
 Message signature verified
