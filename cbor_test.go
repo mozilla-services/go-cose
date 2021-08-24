@@ -156,7 +156,7 @@ func TestCBORMarshalDuplicateKeysErrs(t *testing.T) {
 	assert := assert.New(t)
 
 	// NB: golang does not allow duplicate keys in a map literal
-	// so we don't test Marshalling duplicate entries both in
+	// so we don't test Marshaling duplicate entries both in
 	// Protected or Unprotected
 
 	// uncompressed one in each
