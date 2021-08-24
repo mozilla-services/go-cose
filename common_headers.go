@@ -5,6 +5,17 @@ import (
 	"github.com/pkg/errors"
 )
 
+// common tag values
+const (
+	alg              = "alg"
+	contentType      = "content type"
+	counterSignature = "counter signature"
+	crit             = "crit"
+	iv               = "IV"
+	kid              = "kid"
+	partialIV        = "Partial IV"
+)
+
 // Headers represents "two buckets of information that are not
 // considered to be part of the payload itself, but are used for
 // holding information about content, algorithms, keys, or evaluation
@@ -117,19 +128,19 @@ func (h *Headers) Decode(o []interface{}) (err error) {
 // https://tools.ietf.org/html/rfc8152#section-3.1
 func GetCommonHeaderTag(label string) (tag int, err error) {
 	switch label {
-	case "alg":
+	case alg:
 		return 1, nil
-	case "crit":
+	case crit:
 		return 2, nil
-	case "content type":
+	case contentType:
 		return 3, nil
-	case "kid":
+	case kid:
 		return 4, nil
-	case "IV":
+	case iv:
 		return 5, nil
-	case "Partial IV":
+	case partialIV:
 		return 6, nil
-	case "counter signature":
+	case counterSignature:
 		return 7, nil
 	default:
 		return 0, ErrMissingCOSETagForLabel
@@ -151,19 +162,19 @@ func GetCommonHeaderTagOrPanic(label string) (tag int) {
 func GetCommonHeaderLabel(tag int) (label string, err error) {
 	switch tag {
 	case 1:
-		return "alg", nil
+		return alg, nil
 	case 2:
-		return "crit", nil
+		return crit, nil
 	case 3:
-		return "content type", nil
+		return contentType, nil
 	case 4:
-		return "kid", nil
+		return kid, nil
 	case 5:
-		return "IV", nil
+		return iv, nil
 	case 6:
-		return "Partial IV", nil
+		return partialIV, nil
 	case 7:
-		return "counter signature", nil
+		return counterSignature, nil
 	default:
 		return "", ErrMissingCOSETagForTag
 	}
@@ -206,7 +217,7 @@ func compressHeader(k, v interface{}) (compressedK, compressedV interface{}) {
 
 	switch key := k.(type) {
 	case string:
-		if key == "alg" {
+		if key == alg {
 			keyIsAlg = true
 		}
 		tag, err := GetCommonHeaderTag(key)
@@ -243,7 +254,7 @@ func decompressHeader(k, v interface{}) (decompressedK, decompressedV interface{
 		if err == nil {
 			decompressedK = label
 		}
-		if label == "alg" {
+		if label == alg {
 			keyIsAlg = true
 		}
 	}
@@ -316,7 +327,7 @@ func getAlg(h *Headers) (alg *Algorithm, err error) {
 		return
 	}
 
-	if tmp, ok := h.Protected["alg"]; ok {
+	if tmp, ok := h.Protected[alg]; ok {
 		if algName, ok := tmp.(string); ok {
 			alg, err = getAlgByName(algName)
 			if err != nil {
