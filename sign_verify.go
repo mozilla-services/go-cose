@@ -3,9 +3,9 @@ package cose
 import (
 	"bytes"
 	"crypto"
+	"errors"
 	"fmt"
 	"io"
-	"github.com/pkg/errors"
 )
 
 // Signature represents a COSE signature with CDDL fragment:
@@ -33,6 +33,7 @@ func NewSignature() (s *Signature) {
 	}
 }
 
+// Equal returns true if the two signatures are equal
 func (s *Signature) Equal(other *Signature) bool {
 	if s == nil && other == nil {
 		return true
@@ -122,11 +123,11 @@ func (m *SignMessage) SigStructure(external []byte, signature *Signature) (ToBeS
 // algorithm from the signature parameter
 func (m *SignMessage) signatureDigest(external []byte, signature *Signature, hashFunc crypto.Hash) (digest []byte, err error) {
 	if m == nil {
-		err = errors.Errorf("Cannot compute signatureDigest on nil SignMessage")
+		err = errors.New("can not compute signatureDigest on nil SignMessage")
 		return
 	}
 	if m.Signatures == nil {
-		err = errors.Errorf("Cannot compute signatureDigest on nil SignMessage.Signatures")
+		err = errors.New("can not compute signatureDigest on nil SignMessage.Signatures")
 		return
 	}
 	signatureInMessage := false
@@ -136,7 +137,7 @@ func (m *SignMessage) signatureDigest(external []byte, signature *Signature, has
 		}
 	}
 	if !signatureInMessage {
-		err = errors.Errorf("SignMessage.Signatures does not include the signature to digest")
+		err = errors.New("signMessage.Signatures does not include the signature to digest")
 		return
 	}
 
@@ -164,7 +165,7 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, signers []Signer) (e
 	} else if len(m.Signatures) < 1 {
 		return ErrNoSignatures
 	} else if len(m.Signatures) != len(signers) {
-		return errors.Errorf("%d signers for %d signatures", len(signers), len(m.Signatures))
+		return fmt.Errorf("%d signers for %d signatures", len(signers), len(m.Signatures))
 	}
 
 	for i, signature := range m.Signatures {
@@ -173,7 +174,7 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, signers []Signer) (e
 		} else if signature.Headers.Protected == nil {
 			return ErrNilSigProtectedHeaders
 		} else if signature.SignatureBytes != nil || len(signature.SignatureBytes) > 0 {
-			return errors.Errorf("SignMessage signature %d already has signature bytes", i)
+			return fmt.Errorf("signMessage signature %d already has signature bytes", i)
 		}
 
 		alg, err := getAlg(signature.Headers)
@@ -191,7 +192,7 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, signers []Signer) (e
 
 		signer := signers[i]
 		if alg.Value != signer.alg.Value {
-			return errors.Errorf("Signer of type %s cannot generate a signature of type %s", signer.alg.Name, alg.Name)
+			return fmt.Errorf("signer of type %s cannot generate a signature of type %s", signer.alg.Name, alg.Name)
 		}
 
 		// 3.  Call the signature creation algorithm passing in K (the key to
@@ -215,7 +216,7 @@ func (m *SignMessage) Verify(external []byte, verifiers []Verifier) (err error) 
 		return nil
 	}
 	if len(m.Signatures) != len(verifiers) {
-		return errors.Errorf("Wrong number of signatures %d and verifiers %d", len(m.Signatures), len(verifiers))
+		return fmt.Errorf("wrong number of signatures %d and verifiers %d", len(m.Signatures), len(verifiers))
 	}
 
 	for i, signature := range m.Signatures {
@@ -224,7 +225,7 @@ func (m *SignMessage) Verify(external []byte, verifiers []Verifier) (err error) 
 		} else if signature.Headers.Protected == nil {
 			return ErrNilSigProtectedHeaders
 		} else if signature.SignatureBytes == nil || len(signature.SignatureBytes) < 1 {
-			return errors.Errorf("SignMessage signature %d missing signature bytes to verify", i)
+			return fmt.Errorf("signMessage signature %d missing signature bytes to verify", i)
 		}
 
 		alg, err := getAlg(signature.Headers)

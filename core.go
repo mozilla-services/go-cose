@@ -8,7 +8,8 @@ import (
 	"crypto/rsa"
 	"crypto/subtle"
 	"encoding/base64"
-	"github.com/pkg/errors"
+	"errors"
+	"fmt"
 	"io"
 	"math/big"
 )
@@ -63,13 +64,12 @@ func NewSigner(alg *Algorithm, options interface{}) (signer *Signer, err error) 
 
 	if alg.privateKeyType == KeyTypeECDSA {
 		if alg.privateKeyECDSACurve == nil {
-			err = errors.Errorf("No ECDSA curve found for algorithm")
+			err = errors.New("no ECDSA curve found for algorithm")
 			return nil, err
 		}
 
 		privateKey, err = ecdsa.GenerateKey(alg.privateKeyECDSACurve, rand.Reader)
 		if err != nil {
-			err = errors.Wrapf(err, "error generating ecdsa signer private key")
 			return nil, err
 		}
 	} else if alg.privateKeyType == KeyTypeRSA {
@@ -79,13 +79,12 @@ func NewSigner(alg *Algorithm, options interface{}) (signer *Signer, err error) 
 			if opts.Size > alg.minRSAKeyBitLen {
 				keyBitLen = opts.Size
 			} else {
-				err = errors.Errorf("error generating rsa signer private key RSA key size must be at least %d", alg.minRSAKeyBitLen)
+				err = fmt.Errorf("error generating rsa signer private key RSA key size must be at least %d", alg.minRSAKeyBitLen)
 				return nil, err
 			}
 		}
 		privateKey, err = rsa.GenerateKey(rand.Reader, keyBitLen)
 		if err != nil {
-			err = errors.Wrapf(err, "error generating rsa signer private key")
 			return nil, err
 		}
 	} else {
@@ -130,10 +129,10 @@ func (s *Signer) Sign(rand io.Reader, digest []byte) (signature []byte, err erro
 	switch key := s.PrivateKey.(type) {
 	case *rsa.PrivateKey:
 		if s.alg.privateKeyType != KeyTypeRSA {
-			return nil, errors.Errorf("Key type must be RSA")
+			return nil, errors.New("key type must be RSA")
 		}
 		if key.N.BitLen() < s.alg.minRSAKeyBitLen {
-			return nil, errors.Errorf("RSA key must be at least %d bits long", s.alg.minRSAKeyBitLen)
+			return nil, fmt.Errorf("RSA key must be at least %d bits long", s.alg.minRSAKeyBitLen)
 		}
 
 		sig, err := rsa.SignPSS(rand, key, s.alg.HashFunc, digest, &rsa.PSSOptions{
@@ -141,18 +140,18 @@ func (s *Signer) Sign(rand io.Reader, digest []byte) (signature []byte, err erro
 			Hash:       s.alg.HashFunc,
 		})
 		if err != nil {
-			return nil, errors.Errorf("rsa.SignPSS error %s", err)
+			return nil, fmt.Errorf("rsa.SignPSS error %s", err)
 		}
 		return sig, nil
 	case *ecdsa.PrivateKey:
 		if s.alg.privateKeyType != KeyTypeECDSA {
-			return nil, errors.Errorf("Key type must be ECDSA")
+			return nil, errors.New("key type must be ECDSA")
 		}
 
 		// https://tools.ietf.org/html/rfc8152#section-8.1
 		r, s, err := ecdsa.Sign(rand, key, digest)
 		if err != nil {
-			return nil, errors.Errorf("ecdsa.Sign error %s", err)
+			return nil, fmt.Errorf("ecdsa.Sign error %s", err)
 		}
 
 		// These integers (r and s) will be the same length as
@@ -161,7 +160,7 @@ func (s *Signer) Sign(rand io.Reader, digest []byte) (signature []byte, err erro
 		const tolerance = uint(1)
 		rByteLen, sByteLen, dByteLen := len(s.Bits()), len(r.Bits()), len(key.D.Bits())
 		if !(approxEqual(sByteLen, rByteLen, tolerance) && approxEqual(sByteLen, dByteLen, tolerance) && approxEqual(dByteLen, rByteLen, tolerance)) {
-			return nil, errors.Errorf("Byte lengths of integers r and s (%d and %d) do not match the key length %d±%d\n", sByteLen, rByteLen, dByteLen, tolerance)
+			return nil, fmt.Errorf("byte lengths of integers r and s (%d and %d) do not match the key length %d±%d", sByteLen, rByteLen, dByteLen, tolerance)
 		}
 
 		// The signature is encoded by converting the integers
@@ -212,26 +211,26 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 			Hash:       hashFunc,
 		})
 		if err != nil {
-			return errors.Errorf("verification failed rsa.VerifyPSS err %s", err)
+			return fmt.Errorf("verification failed rsa.VerifyPSS err %s", err)
 		}
 		return nil
 	case *ecdsa.PublicKey:
 		if v.Alg.privateKeyECDSACurve == nil {
-			return errors.Errorf("Could not find an elliptic curve for the ecdsa algorithm")
+			return errors.New("could not find an elliptic curve for the ecdsa algorithm")
 		}
 
 		algCurveBitSize := v.Alg.privateKeyECDSACurve.Params().BitSize
 		keyCurveBitSize := key.Curve.Params().BitSize
 
 		if algCurveBitSize != keyCurveBitSize {
-			return errors.Errorf("Expected %d bit key, got %d bits instead", algCurveBitSize, keyCurveBitSize)
+			return fmt.Errorf("expected %d bit key, got %d bits instead", algCurveBitSize, keyCurveBitSize)
 		}
 
 		algKeyBytesSize := ecdsaCurveKeyBytesSize(v.Alg.privateKeyECDSACurve)
 
 		// signature bytes is the keys with padding r and s
 		if len(signature) != 2*algKeyBytesSize {
-			return errors.Errorf("invalid signature length: %d", len(signature))
+			return fmt.Errorf("invalid signature length: %d", len(signature))
 		}
 
 		r := big.NewInt(0).SetBytes(signature[:algKeyBytesSize])
@@ -271,7 +270,7 @@ func buildAndMarshalSigStructure(bodyProtected, signProtected, external, payload
 	//     byte string, using the encoding described in Section 14.
 	ToBeSigned, err = Marshal(sigStructure)
 	if err != nil {
-		return nil, errors.Errorf("Error marshaling Sig_structure: %s", err)
+		return nil, fmt.Errorf("error marshaling Sig_structure: %s", err)
 	}
 	return ToBeSigned, nil
 }
@@ -352,7 +351,7 @@ func Sign(rand io.Reader, digest []byte, signers []ByteSigner) (signatures [][]b
 // error from the first failing Verifier
 func Verify(digest []byte, signatures [][]byte, verifiers []ByteVerifier) (err error) {
 	if len(signatures) != len(verifiers) {
-		return errors.Errorf("Wrong number of signatures %d and verifiers %d", len(signatures), len(verifiers))
+		return fmt.Errorf("wrong number of signatures %d and verifiers %d", len(signatures), len(verifiers))
 	}
 	for i, verifier := range verifiers {
 		err = verifier.Verify(digest, signatures[i])

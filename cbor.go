@@ -2,11 +2,11 @@ package cose
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"reflect"
 
 	"github.com/fxamacker/cbor/v2"
-	"github.com/pkg/errors"
 )
 
 // SignMessageCBORTag is the CBOR tag for a COSE SignMessage
@@ -122,11 +122,11 @@ type signMessage struct {
 func (message *SignMessage) MarshalCBOR() ([]byte, error) {
 	// Verify SignMessage headers.
 	if message.Headers == nil {
-		return nil, errors.New("cbor: SignMessage has nil Headers")
+		return nil, errors.New("cbor: signMessage has nil Headers")
 	}
 	dup := FindDuplicateHeader(message.Headers)
 	if dup != nil {
-		return nil, fmt.Errorf("cbor: Duplicate header %+v found", dup)
+		return nil, fmt.Errorf("cbor: duplicate header %+v found", dup)
 	}
 
 	// Convert Signature to signature.
@@ -134,7 +134,7 @@ func (message *SignMessage) MarshalCBOR() ([]byte, error) {
 	for i, s := range message.Signatures {
 		dup := FindDuplicateHeader(s.Headers)
 		if dup != nil {
-			return nil, fmt.Errorf("cbor: Duplicate signature header %+v found", dup)
+			return nil, fmt.Errorf("cbor: duplicate signature header %+v found", dup)
 		}
 
 		sigs[i] = signature{
@@ -195,7 +195,7 @@ func (message *SignMessage) MarshalCBOR() ([]byte, error) {
 //
 func (message *SignMessage) UnmarshalCBOR(data []byte) (err error) {
 	if message == nil {
-		return errors.New("cbor: UnmarshalCBOR on nil SignMessage pointer")
+		return errors.New("cbor: unmarshal CBOR on nil SignMessage pointer")
 	}
 
 	// Decode to cbor.RawTag to extract tag number and tag content as []byte.

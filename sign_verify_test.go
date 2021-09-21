@@ -6,8 +6,9 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSignErrors(t *testing.T) {
@@ -59,7 +60,7 @@ func TestSignErrors(t *testing.T) {
 	assert.Equal("0 signers for 1 signatures", err.Error())
 
 	err = msg.Sign(rand.Reader, []byte(""), []Signer{*signer})
-	assert.Equal("SignMessage signature 0 already has signature bytes", err.Error())
+	assert.Equal("signMessage signature 0 already has signature bytes", err.Error())
 
 	msg.Signatures[0].SignatureBytes = nil
 	err = msg.Sign(rand.Reader, []byte(""), []Signer{*signer})
@@ -73,11 +74,11 @@ func TestSignErrors(t *testing.T) {
 
 	signer.alg = PS256
 	err = msg.Sign(rand.Reader, []byte(""), []Signer{*signer})
-	assert.Equal("Signer of type PS256 cannot generate a signature of type ES256", err.Error())
+	assert.Equal("signer of type PS256 cannot generate a signature of type ES256", err.Error())
 
 	msg.Signatures[0].Headers.Protected[algTag] = -9000
 	err = msg.Sign(rand.Reader, []byte(""), []Signer{*signer})
-	assert.Equal("Algorithm with value -9000 not found", err.Error())
+	assert.Equal("algorithm with value -9000 not found", err.Error())
 
 	msg.Signatures[0].Headers.Protected[algTag] = 1
 	err = msg.Sign(rand.Reader, []byte(""), []Signer{*signer})
@@ -120,18 +121,18 @@ func TestSignatureDecodeErrors(t *testing.T) {
 	assert := assert.New(t)
 
 	var (
-		s *Signature = nil
+		s      *Signature = nil
 		result interface{}
 	)
-	assert.Panics(func () { s.Decode(result) })
+	assert.Panics(func() { s.Decode(result) })
 
 	s = &Signature{}
 	result = 5
-	assert.Panics(func () { s.Decode(result) })
+	assert.Panics(func() { s.Decode(result) })
 
 	s = &Signature{}
 	result = []interface{}{1, 2}
-	assert.Panics(func () { s.Decode(result) })
+	assert.Panics(func() { s.Decode(result) })
 
 	s = &Signature{}
 	result = []interface{}{
@@ -139,55 +140,55 @@ func TestSignatureDecodeErrors(t *testing.T) {
 		map[interface{}]interface{}{},
 		[]byte(""),
 	}
-	assert.Panics(func () { s.Decode(result) })
+	assert.Panics(func() { s.Decode(result) })
 
 	s.Headers = &Headers{}
-	result =  []interface{}{
+	result = []interface{}{
 		[]byte("\xA0"),
 		map[interface{}]interface{}{},
 		-1,
 	}
-	assert.Panics(func () { s.Decode(result) })
+	assert.Panics(func() { s.Decode(result) })
 }
 
 func TestSignMessageSignatureDigest(t *testing.T) {
 	assert := assert.New(t)
 
 	var (
-		external = []byte("")
-		hashFunc = crypto.SHA256
-		signature *Signature = nil
-		msg *SignMessage = nil
-		digest []byte
-		err error
+		external               = []byte("")
+		hashFunc               = crypto.SHA256
+		signature *Signature   = nil
+		msg       *SignMessage = nil
+		digest    []byte
+		err       error
 	)
 
 	digest, err = msg.signatureDigest(external, signature, hashFunc)
-	assert.Equal(err.Error(), "Cannot compute signatureDigest on nil SignMessage")
+	assert.Equal(err.Error(), "can not compute signatureDigest on nil SignMessage")
 	assert.Equal(len(digest), 0)
 
 	msg = &SignMessage{}
 	digest, err = msg.signatureDigest(external, signature, hashFunc)
-	assert.Equal(err.Error(), "Cannot compute signatureDigest on nil SignMessage.Signatures")
+	assert.Equal(err.Error(), "can not compute signatureDigest on nil SignMessage.Signatures")
 	assert.Equal(len(digest), 0)
 
 	msg.AddSignature(&Signature{
-		Headers: nil,
+		Headers:        nil,
 		SignatureBytes: []byte("123"),
 	})
 	signature = &Signature{
-		Headers: nil,
+		Headers:        nil,
 		SignatureBytes: nil,
 	}
 	digest, err = msg.signatureDigest(external, signature, hashFunc)
-	assert.Equal(err.Error(), "SignMessage.Signatures does not include the signature to digest")
+	assert.Equal(err.Error(), "signMessage.Signatures does not include the signature to digest")
 	assert.Equal(len(digest), 0)
 
 	msg = NewSignMessage()
 	signature = NewSignature()
 	signature.Headers.Protected[algTag] = ES256
 	msg.Signatures = []Signature{*signature}
-	digest, err = msg.signatureDigest(nil, signature, hashFunc)
+	_, err = msg.signatureDigest(nil, signature, hashFunc)
 	assert.Equal(err, nil, "signatureDigest does not accept nil external")
 }
 
@@ -196,7 +197,6 @@ func TestVerifyErrors(t *testing.T) {
 
 	msg := NewSignMessage()
 	msg.Payload = []byte("payload to sign")
-
 
 	sig := NewSignature()
 	sig.Headers.Protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
@@ -227,7 +227,7 @@ func TestVerifyErrors(t *testing.T) {
 	sig.Headers.Protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
 	sig.Headers.Protected[kidTag] = 1
 	msg.Signatures[0] = *sig
-	assert.Equal("SignMessage signature 0 missing signature bytes to verify", msg.Verify(payload, verifiers).Error())
+	assert.Equal("signMessage signature 0 missing signature bytes to verify", msg.Verify(payload, verifiers).Error())
 
 	msg.Signatures[0].Headers.Protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
 	msg.Signatures[0].Headers.Protected[kidTag] = 1
@@ -238,10 +238,10 @@ func TestVerifyErrors(t *testing.T) {
 	assert.Equal(ErrInvalidAlg, msg.Verify(payload, verifiers))
 
 	msg.Signatures[0].Headers.Protected[algTag] = -7 // ECDSA w/ SHA-256 from [RFC8152]
-	assert.Equal("Wrong number of signatures 1 and verifiers 0", msg.Verify(payload, []Verifier{}).Error())
+	assert.Equal("wrong number of signatures 1 and verifiers 0", msg.Verify(payload, []Verifier{}).Error())
 
 	verifiers = []Verifier{
-		Verifier{
+		{
 			PublicKey: &ecdsa.PublicKey{
 				Curve: elliptic.P384(),
 				X:     FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
@@ -250,12 +250,12 @@ func TestVerifyErrors(t *testing.T) {
 			Alg: ES256,
 		},
 	}
-	assert.Equal("Expected 256 bit key, got 384 bits instead", msg.Verify(payload, verifiers).Error())
+	assert.Equal("expected 256 bit key, got 384 bits instead", msg.Verify(payload, verifiers).Error())
 
 	verifiers = []Verifier{
-		Verifier{
+		{
 			PublicKey: ecdsaPrivateKey.Public(),
-			Alg: ES256,
+			Alg:       ES256,
 		},
 	}
 	assert.Equal("invalid signature length: 14", msg.Verify(payload, verifiers).Error())

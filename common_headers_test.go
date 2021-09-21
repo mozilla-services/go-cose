@@ -2,8 +2,9 @@ package cose
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var CompressionTestCases = []struct {
@@ -143,14 +144,14 @@ func TestGetAlgPanics(t *testing.T) {
 	assert := assert.New(t)
 
 	var algName = "FOOOO"
-	assert.Panics(func () { getAlgByNameOrPanic(algName) })
+	assert.Panics(func() { getAlgByNameOrPanic(algName) })
 }
 
 func TestGetCommonHeaderTagOrPanicPanics(t *testing.T) {
 	assert := assert.New(t)
 
 	var label = "FOOOO"
-	assert.Panics(func () { GetCommonHeaderTagOrPanic(label) })
+	assert.Panics(func() { GetCommonHeaderTagOrPanic(label) })
 }
 
 func TestGetAlgWithString(t *testing.T) {
@@ -160,7 +161,7 @@ func TestGetAlgWithString(t *testing.T) {
 	alg, err := getAlg(h)
 	assert.Nil(alg)
 	assert.NotNil(err)
-	assert.Equal("Cannot getAlg on nil Headers", err.Error())
+	assert.Equal("can not getAlg on nil Headers", err.Error())
 
 	h = &Headers{}
 	h.Protected = map[interface{}]interface{}{
@@ -169,7 +170,7 @@ func TestGetAlgWithString(t *testing.T) {
 	alg, err = getAlg(h)
 	assert.Nil(alg)
 	assert.NotNil(err)
-	assert.Equal(err.Error(), "Algorithm named ROT13 not found")
+	assert.Equal(err.Error(), "algorithm named ROT13 not found")
 
 	h.Protected["alg"] = "ES256"
 	alg, err = getAlg(h)
@@ -189,15 +190,15 @@ func TestHeaderEncodeErrors(t *testing.T) {
 	assert := assert.New(t)
 
 	var h *Headers = nil
-	assert.Panics(func () { h.EncodeProtected() })
+	assert.Panics(func() { h.EncodeProtected() })
 
 	h = &Headers{
 		Protected: map[interface{}]interface{}{
 			"alg": -3,
-			1: -7,
+			1:     -7,
 		},
 	}
-	assert.Panics(func () { h.EncodeProtected() })
+	assert.Panics(func() { h.EncodeProtected() })
 }
 
 func TestHeaderDecodeErrors(t *testing.T) {
@@ -205,10 +206,10 @@ func TestHeaderDecodeErrors(t *testing.T) {
 
 	var (
 		h *Headers = &Headers{
-			Protected: nil,
+			Protected:   nil,
 			Unprotected: nil,
 		}
-		v []interface{}
+		v   []interface{}
 		err error
 	)
 	err = h.Decode(v)

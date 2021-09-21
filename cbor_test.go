@@ -149,7 +149,7 @@ func TestCBORMarshalSignMessageWithNilHeadersErrors(t *testing.T) {
 	msg.Payload = nil
 	msg.Headers = nil
 	_, err := Marshal(msg)
-	assert.Equal("cbor: SignMessage has nil Headers", err.Error())
+	assert.Equal("cbor: signMessage has nil Headers", err.Error())
 }
 
 func TestCBORMarshalDuplicateKeysErrs(t *testing.T) {
@@ -171,7 +171,7 @@ func TestCBORMarshalDuplicateKeysErrs(t *testing.T) {
 		},
 	}
 	_, err := Marshal(msg)
-	assert.Equal(errors.New("cbor: Duplicate header 1 found"), err)
+	assert.Equal(errors.New("cbor: duplicate header 1 found"), err)
 
 	// compressed one in each
 	msg.Headers = &Headers{
@@ -183,7 +183,7 @@ func TestCBORMarshalDuplicateKeysErrs(t *testing.T) {
 		},
 	}
 	_, err = Marshal(msg)
-	assert.Equal(errors.New("cbor: Duplicate header 1 found"), err)
+	assert.Equal(errors.New("cbor: duplicate header 1 found"), err)
 
 	// compressed and uncompressed both in Protected
 	msg.Headers = &Headers{
@@ -194,7 +194,7 @@ func TestCBORMarshalDuplicateKeysErrs(t *testing.T) {
 		Unprotected: map[interface{}]interface{}{},
 	}
 	_, err = Marshal(msg)
-	assert.Equal(errors.New("cbor: Duplicate compressed and uncompressed common header 1 found in headers"), err)
+	assert.Equal(errors.New("cbor: duplicate compressed and uncompressed common header 1 found in headers"), err)
 
 	// compressed and uncompressed both in Unprotected
 	msg.Headers = &Headers{
@@ -205,7 +205,7 @@ func TestCBORMarshalDuplicateKeysErrs(t *testing.T) {
 		},
 	}
 	_, err = Marshal(msg)
-	assert.Equal(errors.New("cbor: Duplicate compressed and uncompressed common header 1 found in headers"), err)
+	assert.Equal(errors.New("cbor: duplicate compressed and uncompressed common header 1 found in headers"), err)
 
 	// compressed and uncompressed one in each
 	msg.Headers = &Headers{
@@ -217,7 +217,7 @@ func TestCBORMarshalDuplicateKeysErrs(t *testing.T) {
 		},
 	}
 	_, err = Marshal(msg)
-	assert.Equal(errors.New("cbor: Duplicate header 1 found"), err)
+	assert.Equal(errors.New("cbor: duplicate header 1 found"), err)
 
 	msg.Headers = &Headers{
 		Protected: map[interface{}]interface{}{
@@ -228,7 +228,7 @@ func TestCBORMarshalDuplicateKeysErrs(t *testing.T) {
 		},
 	}
 	_, err = Marshal(msg)
-	assert.Equal(errors.New("cbor: Duplicate header 1 found"), err)
+	assert.Equal(errors.New("cbor: duplicate header 1 found"), err)
 
 	// duplicate headers in a SignMessage Signature
 	msg.Headers = &Headers{
@@ -247,7 +247,7 @@ func TestCBORMarshalDuplicateKeysErrs(t *testing.T) {
 		SignatureBytes: []byte(""),
 	})
 	_, err = Marshal(msg)
-	assert.Equal("cbor: Duplicate signature header 1 found", err.Error())
+	assert.Equal("cbor: duplicate signature header 1 found", err.Error())
 }
 
 func TestCBORDecodeNilSignMessagePayload(t *testing.T) {
@@ -423,7 +423,7 @@ func TestCBORDecodingErrors(t *testing.T) {
 			// bytes(3) is protected {2: -7}
 			// map(1) is {2: -5}
 			HexToBytesOrDie("D862" + "84" + "43A10226" + "A10224" + "40" + "80"),
-			"cbor: Duplicate header 2 found",
+			"cbor: duplicate header 2 found",
 		},
 		{
 			// duplicate uncompressed key in protected and unprotected
@@ -431,7 +431,7 @@ func TestCBORDecodingErrors(t *testing.T) {
 			// bytes(11) is protected {"alg": "ES256"}
 			// map(1) is unprotected {"alg": "ES256"}
 			HexToBytesOrDie("D862" + "84" + "4B" + "A1" + "63" + "616C67" + "65" + "4553323536" + "A1" + "63" + "616C67" + "65" + "4553323536" + "40" + "80"),
-			"cbor: Duplicate header 1 found",
+			"cbor: duplicate header 1 found",
 		},
 		{
 			// duplicate key compressed in protected and uncompressed in unprotected
@@ -439,7 +439,7 @@ func TestCBORDecodingErrors(t *testing.T) {
 			// bytes(3) is protected {1: -7}
 			// map(1) is unprotected {"alg": "PS256"}
 			HexToBytesOrDie("D862" + "84" + "43" + "A10126" + "A1" + "63" + "616C67" + "65" + "4553323536" + "40" + "80"),
-			"cbor: Duplicate header 1 found",
+			"cbor: duplicate header 1 found",
 		},
 		{
 			// duplicate key uncompressed in protected and compressed in unprotected
@@ -447,7 +447,7 @@ func TestCBORDecodingErrors(t *testing.T) {
 			// bytes(11) is protected {"alg": "ES256"}
 			// map(1) is unprotected {1: -7}
 			HexToBytesOrDie("D862" + "84" + "4B" + "A1" + "63" + "616C67" + "65" + "4553323536" + "A10126" + "40" + "80"),
-			"cbor: Duplicate header 1 found",
+			"cbor: duplicate header 1 found",
 		},
 		{
 			// Signature's protected header is serialized array
@@ -464,7 +464,7 @@ func TestCBORDecodingErrors(t *testing.T) {
 			// Signature bytes(3) is protected {2: -7}
 			// Signature map(1) is {2: -5}
 			HexToBytesOrDie("D862" + "84" + "40" + "A0" + "40" + "81" + "83" + "43A10226" + "A10224" + "40"),
-			"cbor: Duplicate header 2 found",
+			"cbor: duplicate header 2 found",
 		},
 		{
 			// Signature duplicate uncompressed key in protected and unprotected
@@ -474,7 +474,7 @@ func TestCBORDecodingErrors(t *testing.T) {
 			// Signature map(1) is unprotected {"alg": "ES256"}
 			//HexToBytesOrDie("D862" + "84" + "4B" + "A1" + "63" + "616C67" + "65" + "4553323536" + "A1" + "63" + "616C67" + "65" + "4553323536" + "40" + "80"),
 			HexToBytesOrDie("D862" + "84" + "40" + "A0" + "40" + "81" + "83" + "4B" + "A1" + "63" + "616C67" + "65" + "4553323536" + "A1" + "63" + "616C67" + "65" + "4553323536" + "40"),
-			"cbor: Duplicate header 1 found",
+			"cbor: duplicate header 1 found",
 		},
 		{
 			// Signature duplicate key compressed in protected and uncompressed in unprotected
@@ -484,7 +484,7 @@ func TestCBORDecodingErrors(t *testing.T) {
 			// Signature map(1) is unprotected {"alg": "PS256"}
 			//HexToBytesOrDie("D862" + "84" + "43" + "A10126" + "A1" + "63" + "616C67" + "65" + "4553323536" + "40" + "80"),
 			HexToBytesOrDie("D862" + "84" + "40" + "A0" + "40" + "81" + "83" + "43" + "A10126" + "A1" + "63" + "616C67" + "65" + "4553323536" + "40"),
-			"cbor: Duplicate header 1 found",
+			"cbor: duplicate header 1 found",
 		},
 		{
 			// Signature duplicate key uncompressed in protected and compressed in unprotected
@@ -494,7 +494,7 @@ func TestCBORDecodingErrors(t *testing.T) {
 			// Signature map(1) is unprotected {1: -7}
 			//HexToBytesOrDie("D862" + "84" + "4B" + "A1" + "63" + "616C67" + "65" + "4553323536" + "A10126" + "40" + "80"),
 			HexToBytesOrDie("D862" + "84" + "40" + "A0" + "40" + "81" + "83" + "4B" + "A1" + "63" + "616C67" + "65" + "4553323536" + "A10126" + "40"),
-			"cbor: Duplicate header 1 found",
+			"cbor: duplicate header 1 found",
 		},
 	}
 
@@ -551,5 +551,5 @@ func TestUnmarshalToNilSignMessage(t *testing.T) {
 	b := []byte("\xd8\x62\x84\x40\xa0\xf6\x80")
 	var msg *SignMessage
 	err := msg.UnmarshalCBOR(b)
-	assert.Equal("cbor: UnmarshalCBOR on nil SignMessage pointer", err.Error())
+	assert.Equal("cbor: unmarshal CBOR on nil SignMessage pointer", err.Error())
 }

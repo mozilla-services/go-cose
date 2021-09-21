@@ -7,11 +7,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"math/big"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -68,16 +69,16 @@ func TestNewSigner(t *testing.T) {
 
 	edDSA := getAlgByNameOrPanic("EdDSA")
 
-	signer, err := NewSigner(edDSA, nil)
+	_, err = NewSigner(edDSA, nil)
 	assert.NotNil(err)
 	assert.Equal(err.Error(), ErrUnknownPrivateKeyType.Error())
 
 	edDSA.privateKeyType = KeyTypeECDSA
-	signer, err = NewSigner(edDSA, nil)
+	_, err = NewSigner(edDSA, nil)
 	assert.NotNil(err)
-	assert.Equal(err.Error(), "No ECDSA curve found for algorithm")
+	assert.Equal(err.Error(), "no ECDSA curve found for algorithm")
 
-	signer, err = NewSigner(PS256, RSAOptions{Size: 2050})
+	signer, err := NewSigner(PS256, RSAOptions{Size: 2050})
 	assert.Nil(err)
 	rkey := signer.PrivateKey.(*rsa.PrivateKey)
 	keySize := rkey.D.BitLen()
@@ -127,7 +128,7 @@ func TestSignerSignErrors(t *testing.T) {
 	signer.alg.privateKeyType = KeyTypeUnsupported
 	_, err = signer.Sign(rand.Reader, digest)
 	assert.NotNil(err)
-	assert.Equal(err.Error(), "Key type must be ECDSA")
+	assert.Equal(err.Error(), "key type must be ECDSA")
 	signer.alg.privateKeyType = KeyTypeECDSA
 
 	signer, err = NewSigner(PS256, nil)
@@ -136,7 +137,7 @@ func TestSignerSignErrors(t *testing.T) {
 	signer.alg.privateKeyType = KeyTypeUnsupported
 	_, err = signer.Sign(rand.Reader, digest)
 	assert.NotNil(err)
-	assert.Equal(err.Error(), "Key type must be RSA")
+	assert.Equal(err.Error(), "key type must be RSA")
 	signer.alg.privateKeyType = KeyTypeRSA
 
 	weakKey, err := rsa.GenerateKey(rand.Reader, 128)
@@ -189,14 +190,14 @@ func TestVerifyInvalidAlgErrors(t *testing.T) {
 	verifier.Alg = ES256
 	err = verifier.Verify([]byte(""), []byte(""))
 	assert.NotNil(err)
-	assert.Equal("Unrecognized public key type", err.Error())
+	assert.Equal("unrecognized public key type", err.Error())
 
 	verifier.PublicKey = ecdsaPrivateKey.Public()
 	verifier.Alg = ES256
 	verifier.Alg.privateKeyECDSACurve = nil
 	err = verifier.Verify([]byte(""), []byte(""))
 	assert.NotNil(err)
-	assert.Equal("Could not find an elliptic curve for the ecdsa algorithm", err.Error())
+	assert.Equal("could not find an elliptic curve for the ecdsa algorithm", err.Error())
 
 	verifier.Alg.privateKeyECDSACurve = elliptic.P256()
 }
@@ -226,7 +227,7 @@ func TestSignVerifyWithoutMessage(t *testing.T) {
 
 	err = Verify(digest, sigs, []ByteVerifier{})
 	assert.NotNil(err)
-	assert.Equal(err.Error(), "Wrong number of signatures 1 and verifiers 0")
+	assert.Equal(err.Error(), "wrong number of signatures 1 and verifiers 0")
 }
 
 func TestI2OSPCorrectness(t *testing.T) {
@@ -256,28 +257,28 @@ func TestI2OSPTiming(t *testing.T) {
 		zero        = big.NewInt(int64(0))
 		biggerN     = rsaPrivateKey.Primes[0]
 		biggerNSize = len(biggerN.Bytes())
-		call_args   = []struct {
+		callArgs    = []struct {
 			N    *big.Int
 			Size int
 		}{
 			{zero, biggerNSize},
 			{biggerN, biggerNSize},
 		}
-		elapsed_times []time.Duration
+		elapsedTimes []time.Duration
 	)
 	if os.Getenv("CI") == "true" {
 		toleranceNS = int64(50000) // i.e. 50 microseconds
 		fmt.Printf("I2OSPTiming using larger timing diff in CI of %s", time.Duration(toleranceNS))
 	}
 
-	for _, args := range call_args {
+	for _, args := range callArgs {
 		start := time.Now()
 		I2OSP(args.N, args.Size)
-		elapsed_times = append(elapsed_times, time.Since(start))
+		elapsedTimes = append(elapsedTimes, time.Since(start))
 	}
-	assert.Equal(len(call_args), len(elapsed_times))
+	assert.Equal(len(callArgs), len(elapsedTimes))
 
-	diff := int64(elapsed_times[0]) - int64(elapsed_times[1])
+	diff := int64(elapsedTimes[0]) - int64(elapsedTimes[1])
 	if diff < 0 {
 		diff = -diff
 	}

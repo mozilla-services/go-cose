@@ -16,13 +16,12 @@ import (
 //
 
 func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
-	fmt.Println(fmt.Sprintf("%s", testCase.Title))
+	fmt.Printf("%s\n", testCase.Title)
 
 	assert := assert.New(t)
 	assert.True(len(testCase.Params) > 0, "No signature params!")
 
 	signers := []Signer{}
-	verifiers := []Verifier{}
 
 	message := NewSignMessage()
 	msgHeaders := &Headers{
@@ -40,7 +39,6 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 		signer, err := NewSignerFromKey(param.algorithm, key)
 		assert.Nil(err, fmt.Sprintf("%s: Error creating signer %s", testCase.Title, err))
 		signers = append(signers, *signer)
-		verifiers = append(verifiers, *signer.Verifier())
 
 		sig := NewSignature()
 		sig.Headers.Protected[algTag] = param.algorithm.Value

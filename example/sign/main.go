@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"fmt"
+
 	cose "go.mozilla.org/cose"
 )
 
@@ -10,7 +11,7 @@ func main() {
 	// create a signer with a new private key
 	signer, err := cose.NewSigner(cose.ES256, nil)
 	if err != nil {
-		panic(fmt.Sprintf(fmt.Sprintf("Error creating signer %s", err)))
+		panic(fmt.Sprintf("Error creating signer %s", err))
 	}
 
 	// create a signature
@@ -27,19 +28,8 @@ func main() {
 
 	err = msg.Sign(rand.Reader, external, []cose.Signer{*signer})
 	if err == nil {
-		fmt.Println(fmt.Sprintf("Message signature (ES256): %x", msg.Signatures[0].SignatureBytes))
+		fmt.Printf("Message signature (ES256): %x\n", msg.Signatures[0].SignatureBytes)
 	} else {
 		panic(fmt.Sprintf("Error signing the message %+v", err))
-	}
-
-	// derive a verifier using the signer's public key and COSE algorithm
-	verifier := signer.Verifier()
-
-	// Verify
-	err = msg.Verify(external, []cose.Verifier{*verifier})
-	if err == nil {
-		fmt.Println("Message signature verified")
-	} else {
-		fmt.Println(fmt.Sprintf("Error verifying the message %+v", err))
 	}
 }
