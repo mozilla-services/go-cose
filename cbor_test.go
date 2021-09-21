@@ -156,7 +156,7 @@ func TestCBORMarshalDuplicateKeysErrs(t *testing.T) {
 	assert := assert.New(t)
 
 	// NB: golang does not allow duplicate keys in a map literal
-	// so we don't test Marshalling duplicate entries both in
+	// so we don't test Marshaling duplicate entries both in
 	// Protected or Unprotected
 
 	// uncompressed one in each
@@ -511,18 +511,17 @@ func TestCBORDecodingToSignMessageErrors(t *testing.T) {
 	assert := assert.New(t)
 
 	type DecodeErrorTestCase struct {
-		name         string
 		bytes        []byte
 		errorMessage string
 	}
 	var cases = []DecodeErrorTestCase{
+		// missing tag number
 		{
-			"missing tag number",
 			HexToBytesOrDie("8440A0F680"), // array(4) [ bytes(0), map(0), nil, array(0)]
 			"cbor: cannot unmarshal array into Go value of type cbor.RawTag",
 		},
+		// wrong tag number
 		{
-			"wrong tag number",
 			HexToBytesOrDie("D8638440A0F680"), // tag(99) + array(4) [ bytes(0), map(0), nil, array(0)]
 			"cbor: wrong tag number 99",
 		},

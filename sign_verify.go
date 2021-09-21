@@ -168,7 +168,8 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, signers []Signer) (e
 		return fmt.Errorf("%d signers for %d signatures", len(signers), len(m.Signatures))
 	}
 
-	for i, signature := range m.Signatures {
+	for i := range m.Signatures {
+		signature := &m.Signatures[i]
 		if signature.Headers == nil {
 			return ErrNilSigHeader
 		} else if signature.Headers.Protected == nil {
@@ -185,7 +186,7 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, signers []Signer) (e
 			return ErrInvalidAlg
 		}
 
-		digest, err := m.signatureDigest(external, &signature, alg.HashFunc)
+		digest, err := m.signatureDigest(external, signature, alg.HashFunc)
 		if err != nil {
 			return err
 		}
@@ -219,7 +220,8 @@ func (m *SignMessage) Verify(external []byte, verifiers []Verifier) (err error) 
 		return fmt.Errorf("wrong number of signatures %d and verifiers %d", len(m.Signatures), len(verifiers))
 	}
 
-	for i, signature := range m.Signatures {
+	for i := range m.Signatures {
+		signature := &m.Signatures[i]
 		if signature.Headers == nil {
 			return ErrNilSigHeader
 		} else if signature.Headers.Protected == nil {
@@ -236,7 +238,7 @@ func (m *SignMessage) Verify(external []byte, verifiers []Verifier) (err error) 
 			return ErrInvalidAlg
 		}
 
-		digest, err := m.signatureDigest(external, &signature, alg.HashFunc)
+		digest, err := m.signatureDigest(external, signature, alg.HashFunc)
 		if err != nil {
 			return err
 		}

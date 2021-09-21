@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+const (
+	// HeaderAlgorithm is the CBOR tag for the Algorithm header
+	HeaderAlgorithm = "alg"
+)
+
 // Headers represents "two buckets of information that are not
 // considered to be part of the payload itself, but are used for
 // holding information about content, algorithms, keys, or evaluation
@@ -117,7 +122,7 @@ func (h *Headers) Decode(o []interface{}) (err error) {
 // https://tools.ietf.org/html/rfc8152#section-3.1
 func GetCommonHeaderTag(label string) (tag int, err error) {
 	switch label {
-	case "alg":
+	case HeaderAlgorithm:
 		return 1, nil
 	case "crit":
 		return 2, nil
@@ -151,7 +156,7 @@ func GetCommonHeaderTagOrPanic(label string) (tag int) {
 func GetCommonHeaderLabel(tag int) (label string, err error) {
 	switch tag {
 	case 1:
-		return "alg", nil
+		return HeaderAlgorithm, nil
 	case 2:
 		return "crit", nil
 	case 3:
@@ -206,7 +211,7 @@ func compressHeader(k, v interface{}) (compressedK, compressedV interface{}) {
 
 	switch key := k.(type) {
 	case string:
-		if key == "alg" {
+		if key == HeaderAlgorithm {
 			keyIsAlg = true
 		}
 		tag, err := GetCommonHeaderTag(key)
@@ -243,7 +248,7 @@ func decompressHeader(k, v interface{}) (decompressedK, decompressedV interface{
 		if err == nil {
 			decompressedK = label
 		}
-		if label == "alg" {
+		if label == HeaderAlgorithm {
 			keyIsAlg = true
 		}
 	}
@@ -316,7 +321,7 @@ func getAlg(h *Headers) (alg *Algorithm, err error) {
 		return
 	}
 
-	if tmp, ok := h.Protected["alg"]; ok {
+	if tmp, ok := h.Protected[HeaderAlgorithm]; ok {
 		if algName, ok := tmp.(string); ok {
 			alg, err = getAlgByName(algName)
 			if err != nil {
