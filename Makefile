@@ -5,7 +5,7 @@ install:
 
 	mkdir -p test
 	cd test && git clone https://github.com/cose-wg/Examples.git cose-wg-examples || true
-	cd test && git clone https://github.com/g-k/cose-rust.git || true
+	cd test && git clone https://github.com/mozilla-services/cose-rust.git || true
 	cd test/cose-rust && git checkout test-verify-cli
 
 
