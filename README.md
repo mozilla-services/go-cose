@@ -9,6 +9,9 @@ It currently supports signing and verifying the SignMessage type with the ES{256
 
 [API docs](https://godoc.org/go.mozilla.org/cose)
 
+## Caution
+> :warning: Please note that the repository is no longer actively maintained. No further development of any go-cose features will take place here. Please use [veraison-go-cose](https://github.com/veraison/go-cose) if you need go-cose library for your project or wish to participate in go-cose development.
+
 ## Usage
 
 ### Install
