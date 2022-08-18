@@ -3,6 +3,13 @@
 [![CircleCI](https://circleci.com/gh/mozilla-services/go-cose.svg?style=svg)](https://circleci.com/gh/mozilla-services/go-cose) 
 [![Coverage Status](https://coveralls.io/repos/github/mozilla-services/go-cose/badge.svg)](https://coveralls.io/github/mozilla-services/go-cose)
 
+## Caution
+> :warning: Please note that the repository is no longer actively maintained. No further development of any go-cose features will take place here. Please use [veraison-go-cose](https://github.com/veraison/go-cose) if you need go-cose library for your project or wish to participate in go-cose development.
+
+## DANGER
+> :danger: This repository does not properly verify certain COSE signatures. While this does not affect Mozilla's internal use of the code, others are advised to use the [veraison-go-cose](https://github.com/veraison/go-cose) implementation.
+
+----
 A [COSE](https://tools.ietf.org/html/rfc8152) library for go.
 
 It currently supports signing and verifying the SignMessage type with the ES{256,384,512} and PS256 algorithms.
